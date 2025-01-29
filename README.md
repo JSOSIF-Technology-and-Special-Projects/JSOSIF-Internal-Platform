@@ -1,2 +1,2 @@
-# JSOSIF-Web-App
-technology stack
+techstack
+Typescript with tailwind styling refer to learningresources
