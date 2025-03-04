@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@theme {
+   --color-bingbong-500: oklch(44.69% 0.1158 248.97);
+}
