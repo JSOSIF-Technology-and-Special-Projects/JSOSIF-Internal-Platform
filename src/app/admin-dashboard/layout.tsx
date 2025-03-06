@@ -8,7 +8,9 @@ export default function AdminDashboardLayout({
 	return (
 		<div className="flex">
 			<SideNav />
-			<div className="w-full">{children}</div>
+			<div className="w-full max-w-[calc(100vw - 20rem] overflow-hidden">
+				{children}
+			</div>
 		</div>
 	);
 }
