@@ -139,7 +139,7 @@ export default function SideNav() {
 
 	return (
 		<div>
-			<div className="flex flex-col bg-white border-r p-10 gap-6 h-full w-full min-h-screen">
+			<div className="flex flex-col bg-white border-r p-10 w-[20rem] gap-6 h-full min-h-screen">
 				{links.map((link) => (
 					<Link href={link.href} key={link.name}>
 						<div className="flex gap-4 items-center shrink-0">
