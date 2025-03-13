@@ -2,3 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Primary/Secondary/Bases/Neutral */
+
+:root {
+   --primary: #0E5791;
+   --primary-content: #FFFFFF;
+   --secondary: #F2F2F2;
+   --secondary-content: #000000;
+   --base100: #FFFFFF;
+   --base200: #e8e7e7;
+   --base300: #d3d3d3;
+   --neutral: #000000;
+   --neutral-content: #FFFFFF;
+}
+
+.btn {
+   padding: 0.5rem 1rem;
+   border-radius: 0.5rem;
+   border: gray solid 1px;
+   transition-property: all;
+   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+   transition-duration: 150ms;
+}
+
+.primary {
+   background-color: var(--primary);
+   color: var(--primary-content);
+}
+
+.secondary {
+   background-color: var(--secondary);
+   color: var(--secondary-content);
+}
+
+.base-100 {
+   background-color: var(--base100);
+   color: var(--neutral);
+}
+
+.base-200 {
+   background-color: var(--base200);
+   color: var(--neutral);
+}
+
+.base-300 {
+   background-color: var(--base300);
+   color: var(--neutral);
+}
+
+.btn:active {
+   --tw-scale-x: .95;
+   --tw-scale-y: .95;
+   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
