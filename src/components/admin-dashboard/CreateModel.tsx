@@ -1,6 +1,9 @@
 "use client";
 import { after } from "node:test";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
+import DatePicker from "react-datepicker";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 export interface CreateField {
 	key: string;
@@ -17,6 +20,10 @@ export interface CreateField {
 	value?: any;
 	extraArgs?: string[];
 	readonly?: boolean;
+	selectOptions?: any[];
+	selectValueKey?: string;
+	selectLabelKey?: string;
+	selectDefaultLabel?: string;
 }
 
 interface CreateModelProps {
@@ -118,6 +125,10 @@ export default function CreateModel({
 		setLoading(false);
 	}
 
+	useEffect(() => {
+		console.log(formData);
+	}, [formData]);
+
 	return (
 		<div
 			className={`flex h-[100vh] w-screen fixed inset-0 z-40 transition-all ${
@@ -192,8 +203,108 @@ export default function CreateModel({
 							)}
 							{field.type === "number" && <div></div>}
 							{field.type === "textarea" && <div></div>}
-							{field.type === "select" && <div></div>}
+							{field.type === "select" && (
+								<div>
+									<label
+										htmlFor={field.key}
+										className="block text-sm font-medium text-gray-700"
+									>
+										{field.label}
+									</label>
+									<p>
+										{field?.value
+											? field?.value[
+													field?.selectLabelKey ??
+														"name"
+											  ]
+											: ""}
+									</p>
+									<select
+										id={field.key}
+										name={field.key}
+										value={field.value}
+										defaultValue={0}
+										onChange={(e) => {
+											console.log(e.target.value);
+											if (
+												field.selectValueKey &&
+												field.selectLabelKey
+											) {
+												setFormData((prev: any) => ({
+													...prev,
+													[field.key]: {
+														...prev[field.key],
+														value: e.target.value,
+													},
+												}));
+											} else {
+												console.error(
+													"Select value key or select label key not provided"
+												);
+											}
+										}}
+										className="mt-1 block w-full border rounded-md p-1"
+									>
+										<option
+											value={0}
+											disabled
+											className="text-gray-400"
+										>
+											{field.selectDefaultLabel ??
+												"Select an option"}
+										</option>
+										{field.selectOptions?.map(
+											(option, i) => (
+												<option
+													key={i}
+													value={
+														option[
+															field.selectValueKey ??
+																field.key
+														]
+													}
+												>
+													{
+														option[
+															field.selectLabelKey ??
+																field.key
+														]
+													}
+												</option>
+											)
+										)}
+									</select>
+								</div>
+							)}
 							{field.type === "boolean" && <div></div>}
+							{field.type === "date" && (
+								<div>
+									<label
+										htmlFor={field.key}
+										className="block text-sm font-medium text-gray-700"
+									>
+										{field.label}
+									</label>
+									<DatePicker
+										className="mt-1 block !w-full border rounded-md p-1"
+										selected={
+											formData[field.key]?.value
+												? formData[field.key].value
+												: ""
+										}
+										onChange={(date) => {
+											setFormData((prev: any) => ({
+												...prev,
+												[field.key]: {
+													...prev[field.key],
+													value: date,
+												},
+											}));
+											console.log(field.value);
+										}}
+									/>
+								</div>
+							)}
 						</div>
 					))}
 					<div className="col-span-2 flex justify-end">

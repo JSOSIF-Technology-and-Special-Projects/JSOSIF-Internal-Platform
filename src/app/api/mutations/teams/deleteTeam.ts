@@ -1,10 +1,10 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 
-export default async function deleteTeam({ teamId }: { teamId: string }) {
+export default async function deleteTeam({ teamid }: { teamid: string }) {
 	// Validate UUID format before querying
-	if (!teamId || !/^[0-9a-fA-F-]{36}$/.test(teamId)) {
-		return { message: "Valid teamId (UUID) is required" };
+	if (!teamid || !/^[0-9a-fA-F-]{36}$/.test(teamid)) {
+		return { message: "Valid teamid (UUID) is required" };
 	}
 
 	try {
@@ -14,7 +14,7 @@ export default async function deleteTeam({ teamId }: { teamId: string }) {
 
 		const response = await query(
 			"DELETE FROM teams WHERE teamid = $1::UUID RETURNING *",
-			[teamId]
+			[teamid]
 		);
 
 		if (response.length === 0) {

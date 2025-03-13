@@ -8,11 +8,12 @@ import { listTeams } from "@/app/api/queries/teams/listTeams";
 import CreateModel, {
 	CreateField,
 } from "@/components/admin-dashboard/CreateModel";
+import deleteTeam from "@/app/api/mutations/teams/deleteTeam";
 
 export default function Teams() {
 	const [data, setData] = useState<any>(["empty"]);
 	useEffect(() => {
-		listTeams()
+		listTeams({}) // add args
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -37,11 +38,20 @@ export default function Teams() {
 	}
 
 	function refreshData() {
-		listTeams()
+		listTeams({}) // add args
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
 				console.log(res);
+			})
+			.catch((err) => console.error(err));
+	}
+
+	function handleDeleteMutation(rowId: string) {
+		deleteTeam({ teamid: rowId })
+			.then((res) => {
+				if (res.error) return console.error(res.error);
+				refreshData();
 			})
 			.catch((err) => console.error(err));
 	}
@@ -61,6 +71,7 @@ export default function Teams() {
 				<DataTable
 					initialData={data}
 					onCreateClick={toggleCreateModel}
+					deleteHandler={handleDeleteMutation}
 					headers={headers}
 					modelName="Team"
 					idKey="teamid"

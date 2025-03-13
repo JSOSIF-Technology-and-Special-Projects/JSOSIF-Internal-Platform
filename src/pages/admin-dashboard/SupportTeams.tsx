@@ -7,6 +7,7 @@ import CreateModel, {
 	CreateField,
 } from "@/components/admin-dashboard/CreateModel";
 import { listSupportTeams } from "@/app/api/queries/supportTeams/listSupportTeams";
+import deleteSupportTeam from "@/app/api/mutations/supportTeams/deleteSupportTeam";
 
 export default function SupportTeams() {
 	const [data, setData] = useState<any>(["empty"]);
@@ -41,6 +42,15 @@ export default function SupportTeams() {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
 				console.log(res);
+			})
+			.catch((err) => console.error(err));
+	}
+
+	function handleDeleteMutation(rowId: string) {
+		deleteSupportTeam({ supportteamid: rowId })
+			.then((res) => {
+				if (res.error) return console.error(res.error);
+				refreshData();
 			})
 			.catch((err) => console.error(err));
 	}

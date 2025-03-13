@@ -4,6 +4,27 @@ import Link from "next/link";
 export default function SideNav() {
 	const links = [
 		{
+			name: "Dashboard",
+			href: "/admin-dashboard",
+			icon: (
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="32"
+					height="32"
+					viewBox="0 0 24 24"
+				>
+					<path
+						fill="none"
+						stroke="currentColor"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth="2"
+						d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zm0 5h18M10 3v18"
+					/>
+				</svg>
+			),
+		},
+		{
 			name: "Members",
 			href: "/admin-dashboard/members",
 			icon: (

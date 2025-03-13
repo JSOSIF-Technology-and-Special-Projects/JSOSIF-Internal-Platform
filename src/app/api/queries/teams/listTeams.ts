@@ -1,7 +1,12 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 
-export async function listTeams() {
+export interface Args {
+	limit?: number;
+	offset?: number;
+	query?: string;
+}
+export async function listTeams({ limit, offset, query }: Args) {
 	try {
 		const DATABASE_URL = process.env.DATABASE_URL;
 		if (!DATABASE_URL) return { message: "Missing DATABASE_URL from env" };

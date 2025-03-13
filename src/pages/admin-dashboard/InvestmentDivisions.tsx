@@ -7,6 +7,7 @@ import CreateModel, {
 	CreateField,
 } from "@/components/admin-dashboard/CreateModel";
 import { listInvestmentDivisions } from "@/app/api/queries/investmentDivisions/listInvestmentDivisions";
+import deleteInvestmentDivision from "@/app/api/mutations/investmentDivisions/deleteInvestmentDivision";
 
 export default function InvestmentDivisions() {
 	const [data, setData] = useState<any>(["empty"]);
@@ -47,6 +48,15 @@ export default function InvestmentDivisions() {
 			.catch((err) => console.error(err));
 	}
 
+	function handleDeleteMutation(rowId: string) {
+		deleteInvestmentDivision({ investmentdivisionid: rowId })
+			.then((res) => {
+				if (res.error) return console.error(res.error);
+				refreshData();
+			})
+			.catch((err) => console.error(err));
+	}
+
 	return (
 		<>
 			<CreateModel
@@ -64,6 +74,7 @@ export default function InvestmentDivisions() {
 				<DataTable
 					initialData={data}
 					onCreateClick={toggleCreateModel}
+					deleteHandler={handleDeleteMutation}
 					headers={headers}
 					modelName="Investment Division"
 					idKey="investmentdivisionid"

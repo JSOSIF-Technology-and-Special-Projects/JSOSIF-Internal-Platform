@@ -1,10 +1,10 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 
-export default async function deleteTicker({ tickerId }: { tickerId: string }) {
+export default async function deleteTicker({ tickerid }: { tickerid: string }) {
 	// Validate UUID format before querying
-	if (!tickerId || !/^[0-9a-fA-F-]{36}$/.test(tickerId)) {
-		return { message: "Valid tickerId (UUID) is required" };
+	if (!tickerid || !/^[0-9a-fA-F-]{36}$/.test(tickerid)) {
+		return { message: "Valid tickerid (UUID) is required" };
 	}
 
 	try {
@@ -14,7 +14,7 @@ export default async function deleteTicker({ tickerId }: { tickerId: string }) {
 
 		const response = await query(
 			"DELETE FROM tickers WHERE tickerid = $1::UUID RETURNING *",
-			[tickerId]
+			[tickerid]
 		);
 
 		if (response.length === 0) {

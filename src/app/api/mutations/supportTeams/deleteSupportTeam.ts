@@ -2,13 +2,13 @@
 import { neon } from "@neondatabase/serverless";
 
 export default async function deleteSupportTeam({
-	supportTeamId,
+	supportteamid,
 }: {
-	supportTeamId: string;
+	supportteamid: string;
 }) {
 	// Validate UUID format before querying
-	if (!supportTeamId || !/^[0-9a-fA-F-]{36}$/.test(supportTeamId)) {
-		return { message: "Valid supportTeamId (UUID) is required" };
+	if (!supportteamid || !/^[0-9a-fA-F-]{36}$/.test(supportteamid)) {
+		return { message: "Valid supportteamid (UUID) is required" };
 	}
 
 	try {
@@ -18,7 +18,7 @@ export default async function deleteSupportTeam({
 
 		const response = await query(
 			"DELETE FROM supportteams WHERE supportteamid = $1::UUID RETURNING *",
-			[supportTeamId]
+			[supportteamid]
 		);
 
 		if (response.length === 0) {

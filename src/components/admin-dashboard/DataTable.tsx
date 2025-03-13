@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 export interface Header {
 	key: string;
@@ -17,6 +17,7 @@ export interface Header {
 interface DatatableProps {
 	initialData: any[] | ["empty"];
 	onCreateClick: () => void;
+	deleteHandler?: (rowId: string) => void;
 	headers: Header[];
 	modelName: string;
 	idKey: string;
@@ -24,17 +25,32 @@ interface DatatableProps {
 	inspectLink?: string;
 }
 
+interface DeleteConfirmationProps {
+	id: string;
+	name: string;
+}
+
 export default function DataTable({
 	initialData,
 	onCreateClick,
+	deleteHandler,
 	headers,
 	modelName,
 	idKey,
 	description,
 	inspectLink,
 }: DatatableProps) {
+	const [nameKey, setNameKey] = useState<string>("");
+	const [openDeleteConfirmationModel, setOpenDeleteConfirmationModel] =
+		useState<boolean>(false);
+
+	const [deleteItem, setDeleteItem] = useState<DeleteConfirmationProps>();
+
 	// The field that represents the name of the item
-	const nameKey = headers.find((header) => header.isNameKey)?.key ?? "name";
+	useEffect(() => {
+		const key = headers.find((header) => header.isNameKey)?.key ?? "name";
+		setNameKey(key);
+	}, []);
 
 	function findKeyValue(row: any, headers: Header) {
 		let keyValue = "";
@@ -62,6 +78,17 @@ export default function DataTable({
 	useEffect(() => {
 		console.log(initialData);
 	}, [initialData]);
+
+	function handleDeleteClick(row: any) {
+		if (!idKey) return console.error("No idKey provided");
+		const rowId = row[idKey];
+		const nameHeader = headers.find((header) => header.isNameKey);
+		let rowName = "";
+		if (nameHeader?.resolver) rowName = nameHeader.resolver(row);
+		else rowName = row[nameKey];
+		setDeleteItem({ id: rowId, name: rowName });
+		setOpenDeleteConfirmationModel(true);
+	}
 
 	return (
 		<div className="h-full w-full">
@@ -134,7 +161,15 @@ export default function DataTable({
 													{i === 0 ? (
 														<>
 															<div className="right-0 top-1/2 -translate-y-1/2 absolute opacity-0 pointer-events-none flex group-hover:opacity-100 group-hover:pointer-events-auto gap-2 items-center h-full transition-all px-4 z-10">
-																<button className="w-8 h-8 rounded-full flex items-center justify-center p-1">
+																{/* Delete */}
+																<button
+																	onClick={() => {
+																		handleDeleteClick(
+																			row
+																		);
+																	}}
+																	className="w-8 h-8 rounded-full flex items-center justify-center p-1"
+																>
 																	<svg
 																		xmlns="http://www.w3.org/2000/svg"
 																		viewBox="0 0 24 24"
@@ -322,6 +357,48 @@ export default function DataTable({
 					</div>
 				</div>
 			</div>
+			{/* Delete Confirmation Model */}
+			{openDeleteConfirmationModel && (
+				<div>
+					<div className="fixed inset-0 bg-black bg-opacity-50 z-40 w-screen h-screen"></div>
+					<div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] bg-white rounded-xl border p-6 z-50 flex flex-col gap-4">
+						<h1 className="text-2xl font-semibold">
+							Delete {modelName} {deleteItem?.name}?
+						</h1>
+						<p>This action can not be undone</p>
+						<div className="flex gap-4 justify-end">
+							<button
+								onClick={() => {
+									if (
+										deleteItem &&
+										deleteItem?.id &&
+										deleteHandler
+									) {
+										deleteHandler(deleteItem.id);
+										setDeleteItem(undefined);
+										setOpenDeleteConfirmationModel(false);
+									} else
+										console.error(
+											"No id or deleteHandler provided"
+										);
+								}}
+								className="btn bg-danger text-white font-medium"
+							>
+								Delete
+							</button>
+							<button
+								onClick={() => {
+									setDeleteItem(undefined);
+									setOpenDeleteConfirmationModel(false);
+								}}
+								className="btn"
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

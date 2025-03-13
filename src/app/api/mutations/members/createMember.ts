@@ -9,8 +9,8 @@ export default async function createMember({
 	year,
 	joined,
 	image,
-	linkedIn,
-	teamId,
+	linkedin,
+	teamid,
 }: {
 	firstname: string;
 	lastname: string;
@@ -19,17 +19,17 @@ export default async function createMember({
 	year: string;
 	joined: string;
 	image: string;
-	linkedIn: string;
-	teamId: string;
+	linkedin: string;
+	teamid: string;
 }) {
 	if (
 		!firstname ||
 		!lastname ||
 		!role ||
 		!program ||
-		!year
-		// || !joined
-		// || !teamId // TODO: ADD BACK IN WHEN TEAMS ARE IMPLEMENTED
+		!year ||
+		!joined ||
+		!teamid // TODO: ADD BACK IN WHEN TEAMS ARE IMPLEMENTED
 	)
 		return {
 			message: `Missing required field(s) (firstname, lastname, role, program, year, joined, teamId)`,
@@ -43,17 +43,17 @@ export default async function createMember({
 
 		const response = await query(
 			// "INSERT INTO members (firstname, lastname, role, program, year, joined, image, linkedin, teamid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
-			"INSERT INTO members (firstname, lastname, role, program, year, image, linkedin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+			"INSERT INTO members (firstname, lastname, role, program, year, joined, image, linkedin, teamid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
 			[
 				firstname,
 				lastname,
 				role,
 				program,
 				year,
-				// joined,
+				joined,
 				image ?? "",
-				linkedIn ?? "",
-				// teamId,
+				linkedin ?? "",
+				teamid,
 			]
 		);
 		return { message: "Member created successfully", data: response[0] };

@@ -1,10 +1,10 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 
-export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
+export default async function deleteAlumni({ alumniid }: { alumniid: string }) {
 	// Validate UUID format before querying
-	if (!alumniId || !/^[0-9a-fA-F-]{36}$/.test(alumniId)) {
-		return { message: "Valid alumniId (UUID) is required" };
+	if (!alumniid || !/^[0-9a-fA-F-]{36}$/.test(alumniid)) {
+		return { message: "Valid alumniid (UUID) is required" };
 	}
 
 	try {
@@ -14,7 +14,7 @@ export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
 
 		const response = await query(
 			"DELETE FROM alumni WHERE alumniid = $1::UUID RETURNING *",
-			[alumniId]
+			[alumniid]
 		);
 
 		if (response.length === 0) {

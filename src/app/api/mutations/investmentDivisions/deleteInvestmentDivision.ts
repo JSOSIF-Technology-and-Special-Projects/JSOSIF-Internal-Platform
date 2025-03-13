@@ -2,16 +2,16 @@
 import { neon } from "@neondatabase/serverless";
 
 export default async function deleteInvestmentDivision({
-	investmentDivisionId,
+	investmentdivisionid,
 }: {
-	investmentDivisionId: string;
+	investmentdivisionid: string;
 }) {
 	// Validate UUID format before querying
 	if (
-		!investmentDivisionId ||
-		!/^[0-9a-fA-F-]{36}$/.test(investmentDivisionId)
+		!investmentdivisionid ||
+		!/^[0-9a-fA-F-]{36}$/.test(investmentdivisionid)
 	) {
-		return { message: "Valid investmentDivisionId (UUID) is required" };
+		return { message: "Valid investmentdivisionid (UUID) is required" };
 	}
 
 	try {
@@ -21,7 +21,7 @@ export default async function deleteInvestmentDivision({
 
 		const response = await query(
 			"DELETE FROM investmentdivisions WHERE investmentdivisionid = $1::UUID RETURNING *",
-			[investmentDivisionId]
+			[investmentdivisionid]
 		);
 
 		if (response.length === 0) {

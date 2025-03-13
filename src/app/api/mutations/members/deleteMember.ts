@@ -1,10 +1,10 @@
 "use server";
 import { neon } from "@neondatabase/serverless";
 
-export default async function deleteMember({ memberId }: { memberId: string }) {
+export default async function deleteMember({ memberid }: { memberid: string }) {
 	// Validate UUID format before querying
-	if (!memberId || !/^[0-9a-fA-F-]{36}$/.test(memberId)) {
-		return { message: "Valid memberId (UUID) is required" };
+	if (!memberid || !/^[0-9a-fA-F-]{36}$/.test(memberid)) {
+		return { message: "Valid memberid (UUID) is required" };
 	}
 
 	try {
@@ -14,7 +14,7 @@ export default async function deleteMember({ memberId }: { memberId: string }) {
 
 		const response = await query(
 			"DELETE FROM members WHERE memberid = $1::UUID RETURNING *",
-			[memberId]
+			[memberid]
 		);
 
 		if (response.length === 0) {

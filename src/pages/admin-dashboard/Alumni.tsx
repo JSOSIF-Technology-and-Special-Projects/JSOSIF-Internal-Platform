@@ -7,6 +7,7 @@ import CreateModel, {
 } from "@/components/admin-dashboard/CreateModel";
 import { listAlumni } from "@/app/api/queries/alumni/listAlumni";
 import createAlumni from "@/app/api/mutations/alumni/createAlumni";
+import deleteAlumni from "@/app/api/mutations/alumni/deleteAlumni";
 
 export default function Alumni() {
 	const [data, setData] = useState<any>(["empty"]);
@@ -67,6 +68,15 @@ export default function Alumni() {
 			.catch((err) => console.error(err));
 	}
 
+	function handleDeleteMutation(rowId: string) {
+		deleteAlumni({ alumniid: rowId })
+			.then((res) => {
+				if (res.error) return console.error(res.error);
+				refreshData();
+			})
+			.catch((err) => console.error(err));
+	}
+
 	return (
 		<>
 			<CreateModel
@@ -82,6 +92,7 @@ export default function Alumni() {
 				<DataTable
 					initialData={data}
 					onCreateClick={toggleCreateModel}
+					deleteHandler={handleDeleteMutation}
 					headers={headers}
 					modelName="Alumni"
 					idKey="alumniid"
