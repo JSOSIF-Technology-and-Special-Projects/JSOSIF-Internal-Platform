@@ -1,7 +1,7 @@
 "use client";
 // Header component,
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,16 +14,13 @@ export default function Header() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [teamsDropdownOpen, setTeamsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const handleScroll = () => {
     const position = window.scrollY;
     setScrollPosition(position);
   };
 
   const paths = [
-    {
-      name: "Learning Resources",
-      href: "/learningresources",
-    },
     {
       name: "Teams",
       href: "/teams",
@@ -54,6 +51,10 @@ export default function Header() {
         },
       ],
     },
+    {
+      name: "Learning Resources",
+      href: "/learningresources",
+    },
   ];
 
   // Adds event listener to listen for scroll events
@@ -63,6 +64,17 @@ export default function Header() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
+        setTeamsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -105,26 +117,28 @@ export default function Header() {
               height="32"
               viewBox="0 0 24 24"
             >
-              <path fill="currentColor" d="M3 4h18v2H3zm0 7h18v2H3z" />
+              <path fill="currentColor" d="M3 4h18v2H3zm0 7h18v2H3zm0 7h18v2H3z" />
             </svg>
           </button>
           {/* Desktop home button */}
-          <div className="hover:cursor-pointer w-fit mr-12 shrink-0 md:block hidden">
-            <Link
-              href="/"
-              passHref
-              legacyBehavior
-              aira-labal="Back to home"
-              className="hover:cursor-pointer"
-            >
-              <Image
-                src={jsosifbanner}
-                alt="Logo"
-                height={80}
-                width={300}
-                className="h-12 md:h-16 xl:h-20 object-contain hover:cursor-pointer"
-              />
-            </Link>
+          <div className="hover:cursor-pointer w-fit mr-0 shrink-0">
+            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:relative sm:left-auto sm:transform-none">
+              <Link
+                href="/"
+                passHref
+                legacyBehavior
+                aira-labal="Back to home"
+                className="hover:cursor-pointer"
+              >
+                <Image
+                  src={jsosifbanner}
+                  alt="Logo"
+                  height={80}
+                  width={300}
+                  className="h-12 md:h-16 xl:h-20 object-contain hover:cursor-pointer"
+                />
+              </Link>
+            </div>
           </div>
         </div>
         
@@ -133,7 +147,7 @@ export default function Header() {
           {paths.map(( item ) => {
             if(item.childPaths){
               return (
-                <div key={item.name} className="relative">
+                <div key={item.name} className="relative" ref={dropdownRef}>
                   <button onClick={() => 
                     setTeamsDropdownOpen((prev) => !prev)
                   }
