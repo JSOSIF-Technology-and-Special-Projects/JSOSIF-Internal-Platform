@@ -14,6 +14,7 @@ export default function Header() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [teamsDropdownOpen, setTeamsDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const handleScroll = () => {
     const position = window.scrollY;
@@ -50,6 +51,10 @@ export default function Header() {
           href: "/fixedincome&realestate",
         },
       ],
+    },
+    {
+      name: "Website Dashboard",
+      href: "/websitedashboard",
     },
     {
       name: "Learning Resources",
@@ -104,12 +109,12 @@ export default function Header() {
         />
       </div>
       {/* Logo Section */}
-      <div className="mx-4 md:mx-20 xl:mx-52 w-full flex items-center relative">
+      <div className="mx-4 md:mx-20 xl:mx-52 w-full flex items-center relative overflow-visible">
         <div className="flex items-center flex-none">
           <button
             onClick={() => setMenuOpen(true)}
             aira-label="Back to home"
-            className="hover:cursor-pointer mr-4 lg:mr-[8rem] rounded-full p-2 hover:text-[#0E5791] text-gray-600 xl:hidden"
+            className="hover:cursor-pointer mr-4 lg:mr-[8rem] rounded-full p-2 hover:text-[#0E5791] text-gray-600 md:hidden"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -143,7 +148,7 @@ export default function Header() {
         </div>
         
         {/* Navigation Links */}
-        <nav className="justify-end xl:flex flex-1 space-x-8 text-gray-600 hidden">
+        <nav className="justify-end md:flex flex-1 space-x-8 text-gray-600 hidden">
           {paths.map(( item ) => {
             if(item.childPaths){
               return (
@@ -219,6 +224,37 @@ export default function Header() {
             }
           })}
         </nav>
+        {/* Logout SVG */}
+        {/* <div className="absolute top-6 -right-[6rem] z-50"> */}
+          <Link
+            href = "/login"
+            passHref
+            legacyBehavior
+          >
+            <a aria-label = "Logout" title="Logout" className = "ml-auto transform translate-x-12 hover:cursor">
+              <svg className="text-gray-600 hover:text-[#0E5791]" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+                  <path d="M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2" />
+                  <path d="M9 12h12l-3-3m0 6l3-3" />
+                </g>
+              </svg>
+            </a>
+          </Link>
+        {/* </div> */}
+        {/* {!isLoggedIn && ( 
+          <div className="hidden xl:flex space-x-2 absolute top-[-0.5rem] right-[-11rem]">
+            <Link href="/login" legacyBehavior>
+              <button className="bg-white border border-gray-300 text-sm px-4 py-1 rounded-md hover:bg-gray-100 hover:border-gray-400">
+                Log in
+              </button>
+            </Link>
+            <Link href="/signup">
+              <button className="bg-[#0E5791] text-white text-sm px-4 py-1 rounded-md hover:bg-gray-800">
+                Sign Up
+              </button>
+            </Link>
+          </div>
+        )} */}
       </div>
     </header>
   );

@@ -173,6 +173,16 @@ export default function MobileMenu({
             }
           })}
         </nav>
+        <div className="mt-0">
+          <Link href="/login" passHref legacyBehavior>
+            <a
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-[#0E5791] px-4 sm:px-12 py-1 text-2xl rounded hover:cursor-pointer text-gray-600"
+            >
+              Logout
+            </a>
+          </Link>
+        </div>
       </div>
     </div>
   );
