@@ -8,11 +8,27 @@ import CreateModel, {
 } from "@/components/admin-dashboard/CreateModel";
 import { listSupportTeams } from "@/app/api/queries/supportTeams/listSupportTeams";
 import deleteSupportTeam from "@/app/api/mutations/supportTeams/deleteSupportTeam";
+import { Args } from "@/utils/interfaces";
 
 export default function SupportTeams() {
 	const [data, setData] = useState<any>(["empty"]);
+	const [count, setCount] = useState<number>(0);
+	const [currArgs, setCurrArgs] = useState<Args>({
+		limit: 10,
+		offset: 0,
+		query: "",
+		sortDirection: "DESC",
+		sortField: "",
+	});
+
 	useEffect(() => {
-		listSupportTeams()
+		listSupportTeams({
+			limit: 10,
+			offset: 0,
+			query: "",
+			sortDirection: "DESC",
+			sortField: "",
+		})
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -36,11 +52,12 @@ export default function SupportTeams() {
 		setCreateModelOpen((prev) => !prev);
 	}
 
-	function refreshData() {
-		listSupportTeams()
+	function refreshData(args: Args) {
+		listSupportTeams({ ...currArgs, ...args })
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
+				setCount(res.count);
 				console.log(res);
 			})
 			.catch((err) => console.error(err));
@@ -50,7 +67,13 @@ export default function SupportTeams() {
 		deleteSupportTeam({ supportteamid: rowId })
 			.then((res) => {
 				if (res.error) return console.error(res.error);
-				refreshData();
+				refreshData({
+					limit: 10,
+					offset: 0,
+					query: "",
+					sortDirection: "DESC",
+					sortField: "",
+				});
 			})
 			.catch((err) => console.error(err));
 	}
@@ -68,7 +91,9 @@ export default function SupportTeams() {
 			<div className="w-full h-full p-10">
 				<h1 className="text-4xl font-medium mb-6">Support Teams</h1>
 				<DataTable
+					refreshData={refreshData}
 					initialData={data}
+					count={count}
 					onCreateClick={toggleCreateModel}
 					headers={headers}
 					modelName="Support Team"

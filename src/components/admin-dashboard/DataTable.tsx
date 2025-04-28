@@ -1,5 +1,6 @@
 "use client";
 
+import { off } from "process";
 import React, { useEffect, useState } from "react";
 
 export interface Header {
@@ -18,6 +19,8 @@ interface DatatableProps {
 	initialData: any[] | ["empty"];
 	onCreateClick: () => void;
 	deleteHandler?: (rowId: string) => void;
+	refreshData: (args: any) => void;
+	count: number;
 	headers: Header[];
 	modelName: string;
 	idKey: string;
@@ -34,6 +37,8 @@ export default function DataTable({
 	initialData,
 	onCreateClick,
 	deleteHandler,
+	refreshData,
+	count,
 	headers,
 	modelName,
 	idKey,
@@ -45,6 +50,15 @@ export default function DataTable({
 		useState<boolean>(false);
 
 	const [deleteItem, setDeleteItem] = useState<DeleteConfirmationProps>();
+
+	const [limit, setLimit] = useState<number>(10);
+	const [offset, setOffset] = useState<number>(0);
+	const [query, setQuery] = useState<string>("");
+	const [sortField, setSortField] = useState<string>("");
+	const [sortDirection, setSortDirection] = useState<"DESC" | "ASC">("DESC");
+	const [page, setPage] = useState<number>(0);
+	const [searchPlaceholder, setSearchPlaceholder] =
+		useState<string>("Search");
 
 	// The field that represents the name of the item
 	useEffect(() => {
@@ -90,12 +104,75 @@ export default function DataTable({
 		setOpenDeleteConfirmationModel(true);
 	}
 
+	async function handlePaginate(direction: "next" | "prev") {
+		let newOffset = 0;
+		if (direction === "next") {
+			// Add limit to offset
+			if (offset + limit >= count) return;
+			setOffset((prev) => prev + limit);
+			newOffset = offset + limit;
+		} else if (direction === "prev") {
+			if (offset - limit < 0) return;
+			setOffset((prev) => prev - limit);
+			newOffset = offset - limit;
+		}
+		await refreshData({
+			limit: limit,
+			offset: newOffset,
+			query: query,
+			sortDirection: sortDirection,
+			sortField: sortField,
+		});
+	}
+
+	useEffect(() => {
+		if (count >= 0) {
+			setPage(Math.floor(offset / limit));
+		}
+	}, [count, offset]);
+
+	useEffect(() => {
+		setOffset(0);
+		refreshData({
+			limit: limit,
+			offset: 0,
+			query: query,
+			sortDirection: sortDirection,
+			sortField: sortField,
+		});
+	}, [query]);
+
 	return (
 		<div className="h-full w-full">
 			{/* Table options/dropdowns */}
 			<div className="border rounded-2xl p-8">
 				<div className="flex justify-between items-center px-4">
 					<div className="text-sm">{description}</div>
+					<div className="flex gap-2 items-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							className="text-primary"
+						>
+							<path
+								fill="none"
+								stroke="currentColor"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0-14 0m18 11l-6-6"
+							/>
+						</svg>
+						<input
+							className="ring-0 outline-none border-r-0 border-t-0 border-b-0 border-l placeholder:pl-2 border-gray-400 placeholder:text-gray-500 focus:border-l-0"
+							onFocus={() => setSearchPlaceholder("")}
+							onBlur={() => setSearchPlaceholder("Search")}
+							placeholder={searchPlaceholder}
+							onChange={(e) => setQuery(e.target.value)}
+						/>
+					</div>
 					<div>
 						<button
 							onClick={onCreateClick}
@@ -273,85 +350,122 @@ export default function DataTable({
 							""
 						)}
 					</div>
-					<div className="pt-5">
-						{/* Pagination here */}
-						<div className="flex justify-center items-center">
-							<div className="flex gap-4">
-								<button className="">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
+					<div className="mt-5 flex justify-between items-center gap-4 ml-auto w-fit">
+						<p className="text-gray-500">
+							Page {page + 1} of {Math.ceil(count / limit)}
+						</p>
+						<div className="mr-4 rounded-lg p-1 w-fit bg-gray-200">
+							{/* Pagination here */}
+							<div className="flex justify-center items-center gap-1">
+								<div className="flex gap-4">
+									<button
+										className="p-1 hover:text-primary"
+										onClick={() => handlePaginate("prev")}
 									>
-										<path
-											fill="none"
-											stroke="currentColor"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="m11 7l-5 5l5 5m6-10l-5 5l5 5"
-										/>
-									</svg>
-								</button>
-								<button className="">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+										>
+											<path
+												fill="none"
+												stroke="currentColor"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth="2"
+												d="m15 6l-6 6l6 6"
+											/>
+										</svg>
+									</button>
+								</div>
+								<div className="flex items-center gap-1">
+									{page - 1 !== -1 && (
+										<button
+											onClick={() => {
+												setOffset((page - 1) * limit);
+												refreshData({
+													limit: limit,
+													offset: (page - 1) * limit,
+													query: query,
+													sortDirection:
+														sortDirection,
+													sortField: sortField,
+												});
+											}}
+											className={`border min-w-8 h-8 px-1 rounded-lg font-semibold transition-all ${
+												(page - 1) * limit === offset
+													? "bg-white"
+													: "border border-transparent hover:border-gray-300 text-gray-500"
+											}`}
+										>
+											{page}
+										</button>
+									)}
+									<button
+										onClick={() => {
+											setOffset(page * limit);
+											refreshData({
+												limit: limit,
+												offset: page * limit,
+												query: query,
+												sortDirection: sortDirection,
+												sortField: sortField,
+											});
+										}}
+										className={`border min-w-8 h-8 px-1 rounded-lg font-semibold transition-all ${
+											page * limit === offset
+												? "bg-white"
+												: "border border-transparent hover:border-gray-300 text-gray-500"
+										}`}
 									>
-										<path
-											fill="none"
-											stroke="currentColor"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="m15 6l-6 6l6 6"
-										/>
-									</svg>
-								</button>
-							</div>
-							<div>
-								<button className="border min-w-10 h-10 px-3 rounded-xl text-lg font-medium">
-									1
-								</button>
-							</div>
-							<div className="flex gap-4">
-								<button className="">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
+										{page + 1}
+									</button>
+									{offset + limit < count && (
+										<button
+											onClick={() => {
+												setOffset((page + 1) * limit);
+												refreshData({
+													limit: limit,
+													offset: (page + 1) * limit,
+													query: query,
+													sortDirection:
+														sortDirection,
+													sortField: sortField,
+												});
+											}}
+											className={`border min-w-8 h-8 px-1 rounded-lg font-semibold transition-all ${
+												(page + 1) * limit === offset
+													? "bg-white"
+													: "border border-transparent hover:border-gray-300 text-gray-500"
+											}`}
+										>
+											{page + 2}
+										</button>
+									)}
+								</div>
+								<div className="flex gap-4">
+									<button
+										onClick={() => handlePaginate("next")}
+										className="p-1 hover:text-primary"
 									>
-										<path
-											fill="none"
-											stroke="currentColor"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="m9 6l6 6l-6 6"
-										/>
-									</svg>
-								</button>
-								<button className="">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										width="32"
-										height="32"
-										viewBox="0 0 24 24"
-									>
-										<path
-											fill="none"
-											stroke="currentColor"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="m7 7l5 5l-5 5m6-10l5 5l-5 5"
-										/>
-									</svg>
-								</button>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+										>
+											<path
+												fill="none"
+												stroke="currentColor"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth="2"
+												d="m9 6l6 6l-6 6"
+											/>
+										</svg>
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>

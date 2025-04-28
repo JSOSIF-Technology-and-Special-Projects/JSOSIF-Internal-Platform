@@ -9,14 +9,31 @@ import CreateModel, {
 	CreateField,
 } from "@/components/admin-dashboard/CreateModel";
 import deleteTeam from "@/app/api/mutations/teams/deleteTeam";
+import { Args } from "../../utils/interfaces";
 
 export default function Teams() {
 	const [data, setData] = useState<any>(["empty"]);
+	const [count, setCount] = useState<number>(0);
+	const [currArgs, setCurrArgs] = useState<Args>({
+		limit: 10,
+		offset: 0,
+		query: "",
+		sortDirection: "DESC",
+		sortField: "",
+	});
+
 	useEffect(() => {
-		listTeams({}) // add args
+		listTeams({
+			limit: 10,
+			offset: 0,
+			query: "",
+			sortDirection: "DESC",
+			sortField: "",
+		})
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
+				setCount(res.count);
 				console.log(res);
 			})
 			.catch((err) => console.error(err));
@@ -37,11 +54,13 @@ export default function Teams() {
 		setCreateModelOpen((prev) => !prev);
 	}
 
-	function refreshData() {
-		listTeams({}) // add args
+	function refreshData(args: Args = {}) {
+		setCurrArgs({ ...currArgs, ...args });
+		listTeams({ ...args }) // add args
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
+				setCount(res.count);
 				console.log(res);
 			})
 			.catch((err) => console.error(err));
@@ -63,7 +82,7 @@ export default function Teams() {
 				createFields={createFields}
 				createMutation={createTeam}
 				toggleModel={toggleCreateModel}
-				afterCreate={refreshData}
+				afterCreate={() => refreshData(currArgs)}
 				modelOpen={createModelOpen}
 			/>
 			<div className="w-full h-full p-10">
@@ -72,6 +91,8 @@ export default function Teams() {
 					initialData={data}
 					onCreateClick={toggleCreateModel}
 					deleteHandler={handleDeleteMutation}
+					refreshData={refreshData}
+					count={count}
 					headers={headers}
 					modelName="Team"
 					idKey="teamid"

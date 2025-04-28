@@ -8,11 +8,21 @@ import CreateModel, {
 import { listAlumni } from "@/app/api/queries/alumni/listAlumni";
 import createAlumni from "@/app/api/mutations/alumni/createAlumni";
 import deleteAlumni from "@/app/api/mutations/alumni/deleteAlumni";
+import { Args } from "@/utils/interfaces";
 
 export default function Alumni() {
 	const [data, setData] = useState<any>(["empty"]);
+	const [count, setCount] = useState<number>(0);
+	const [currArgs, setCurrArgs] = useState<Args>({
+		limit: 10,
+		offset: 0,
+		query: "",
+		sortDirection: "DESC",
+		sortField: "",
+	});
+
 	useEffect(() => {
-		listAlumni()
+		listAlumni(currArgs)
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -58,8 +68,8 @@ export default function Alumni() {
 		setCreateModelOpen((prev) => !prev);
 	}
 
-	function refreshData() {
-		listAlumni()
+	function refreshData(args: Args = {}) {
+		listAlumni({ ...currArgs, ...args })
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -91,6 +101,8 @@ export default function Alumni() {
 				<h1 className="text-4xl font-medium mb-6">Alumni</h1>
 				<DataTable
 					initialData={data}
+					count={count}
+					refreshData={refreshData}
 					onCreateClick={toggleCreateModel}
 					deleteHandler={handleDeleteMutation}
 					headers={headers}

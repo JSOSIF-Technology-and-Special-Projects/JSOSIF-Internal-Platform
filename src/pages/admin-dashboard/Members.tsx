@@ -10,12 +10,28 @@ import CreateModel, {
 import createMember from "@/app/api/mutations/members/createMember";
 import deleteMember from "@/app/api/mutations/members/deleteMember";
 import { listTeams } from "@/app/api/queries/teams/listTeams";
+import { Args } from "@/utils/interfaces";
 
 export default function Members() {
 	const [data, setData] = useState<any>(["empty"]);
 	const [teamsData, setTeamsData] = useState<any>(["empty"]);
+	const [count, setCount] = useState<number>(0);
+	const [currArgs, setCurrArgs] = useState<Args>({
+		limit: 10,
+		offset: 0,
+		query: "",
+		sortDirection: "DESC",
+		sortField: "",
+	});
+
 	useEffect(() => {
-		listMembers()
+		listMembers({
+			limit: 10,
+			offset: 0,
+			query: "",
+			sortDirection: "DESC",
+			sortField: "",
+		})
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -87,11 +103,12 @@ export default function Members() {
 		setCreateModelOpen((prev) => !prev);
 	}
 
-	function refreshData() {
-		listMembers()
+	function refreshData(args: Args = {}) {
+		listMembers({ ...currArgs, ...args })
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
+				setCount(res.count);
 				console.log(res);
 			})
 			.catch((err) => console.error(err));
@@ -101,7 +118,7 @@ export default function Members() {
 		deleteMember({ memberid: rowId })
 			.then((res) => {
 				if (res.error) return console.error(res.error);
-				refreshData();
+				refreshData(currArgs);
 			})
 			.catch((err) => console.error(err));
 	}
@@ -120,6 +137,8 @@ export default function Members() {
 				<h1 className="text-4xl font-medium mb-6">Members</h1>
 				<DataTable
 					initialData={data}
+					count={count}
+					refreshData={refreshData}
 					onCreateClick={toggleCreateModel}
 					deleteHandler={handleDeleteMutation}
 					headers={headers}

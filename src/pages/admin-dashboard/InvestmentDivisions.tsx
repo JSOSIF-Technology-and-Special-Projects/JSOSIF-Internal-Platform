@@ -8,11 +8,26 @@ import CreateModel, {
 } from "@/components/admin-dashboard/CreateModel";
 import { listInvestmentDivisions } from "@/app/api/queries/investmentDivisions/listInvestmentDivisions";
 import deleteInvestmentDivision from "@/app/api/mutations/investmentDivisions/deleteInvestmentDivision";
+import { Args } from "@/utils/interfaces";
 
 export default function InvestmentDivisions() {
 	const [data, setData] = useState<any>(["empty"]);
+	const [count, setCount] = useState<number>(0);
+	const [currArgs, setCurrArgs] = useState<Args>({
+		limit: 10,
+		offset: 0,
+		query: "",
+		sortDirection: "DESC",
+		sortField: "",
+	});
 	useEffect(() => {
-		listInvestmentDivisions()
+		listInvestmentDivisions({
+			limit: 10,
+			offset: 0,
+			query: "",
+			sortDirection: "DESC",
+			sortField: "",
+		})
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
@@ -38,11 +53,12 @@ export default function InvestmentDivisions() {
 		setCreateModelOpen((prev) => !prev);
 	}
 
-	function refreshData() {
-		listInvestmentDivisions()
+	function refreshData(args: Args = {}) {
+		listInvestmentDivisions({ ...currArgs, ...args }) // add args
 			.then((res) => {
 				if (res.error) return console.error(res.error);
 				setData(res.data);
+				setCount(res.count);
 				console.log(res);
 			})
 			.catch((err) => console.error(err));
@@ -73,6 +89,8 @@ export default function InvestmentDivisions() {
 				</h1>
 				<DataTable
 					initialData={data}
+					count={count}
+					refreshData={refreshData}
 					onCreateClick={toggleCreateModel}
 					deleteHandler={handleDeleteMutation}
 					headers={headers}
