@@ -54,7 +54,7 @@ export default function Header() {
     },
     {
       name: "Website Dashboard",
-      href: "/websitedashboard",
+      href: "/admin-dashboard",
     },
     {
       name: "Learning Resources",
