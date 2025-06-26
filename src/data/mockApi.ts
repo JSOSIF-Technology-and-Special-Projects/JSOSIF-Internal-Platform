@@ -787,6 +787,20 @@ export const mockApiData = {
 			linkedin: "https://www.linkedin.com/in/nicofazio/",
 		},
 	],
+	users: [
+		{
+			email: 'jsweet@uwindsor.ca',
+			password: 'sweet',
+			name: 'Jacob Sweet',
+			role: 'Admin',
+		},
+		{
+			email: 'gibbm@uwindsor.ca',
+			password: 'gibb',
+			name: 'Michael Gibb',
+			role: 'User',
+		},
+	],
 };
 
 //mock api functions
@@ -796,8 +810,10 @@ export const fetchInvestmentDivisions = async () =>
 export const fetchSupportTeams = async () => mockApiData.supportTeams;
 export const fetchTeams = async () => mockApiData.teams;
 export const fetchAlumni = async () => mockApiData.alumni;
-
-// {
+export const fetchUserByCredentials = async (email: string, password: string) => {
+	const users = mockApiData.users;
+	return users.find((user) => user.email === email && user.password === password) || null;
+  };// {
 // 	name: "",
 // 	role: "",
 // 	program: "",

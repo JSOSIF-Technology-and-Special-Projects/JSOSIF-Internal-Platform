@@ -82,6 +82,9 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  if (pathname === "/login") {
+    return null;
+  }
   return (
     <header
       className={`flex items-center justify-center py-4 bg-white shadow-md z-50 ${
