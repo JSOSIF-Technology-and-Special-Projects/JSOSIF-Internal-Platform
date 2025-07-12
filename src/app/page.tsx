@@ -1,6 +1,6 @@
-
+import Homepage from "@/pages/HomePage";
 export default function Home() {
   return (
-    <div>hi</div>
+    <Homepage />
   );
 }
