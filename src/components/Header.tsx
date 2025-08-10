@@ -40,7 +40,7 @@ export default function Header() {
         },
         {
           name: "Industrials & Natural Resources",
-          href: "/industrials&retail",
+          href: "/industrials&naturalresources",
         },
         {
           name: "Health Care",
