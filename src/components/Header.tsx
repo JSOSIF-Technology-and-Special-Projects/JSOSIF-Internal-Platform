@@ -26,40 +26,16 @@ export default function Header() {
       name: "Teams",
       href: "/teams",
       childPaths: [
-        {
-          name: "Financial Institutions",
-          href: "/financialinstitutions",
-        },
-        {
-          name: "Tech Media Telecommunications",
-          href: "/telemediatelecommunications",
-        },
-        {
-          name: "Consumer & Retail",
-          href: "/consumer&retail",
-        },
-        {
-          name: "Industrials & Natural Resources",
-          href: "/industrials&retail",
-        },
-        {
-          name: "Health Care",
-          href: "/healthcare",
-        },
-        {
-          name: "Fixed Income & Real Estate",
-          href: "/fixedincome&realestate",
-        },
+        { name: "Technology & Healthcare", href: "/teams/technology-and-healthcare" },
+        { name: "Financial Institutions", href: "/teams/financial-institutions" },
+        { name: "Tech, Media & Telecommunications", href: "/teams/tech-media-telecommunications" },
+        { name: "Consumer & Retail", href: "/teams/consumer-retail" },
+        { name: "Industrials & Natural Resources", href: "/teams/industrials-natural-resources" },
+        { name: "Health Care", href: "/teams/health-care" },
       ],
     },
-    {
-      name: "Website Dashboard",
-      href: "/admin-dashboard",
-    },
-    {
-      name: "Learning Resources",
-      href: "/learningresources",
-    },
+    { name: "Website Dashboard", href: "/admin-dashboard" },
+    { name: "Learning Resources", href: "/learningresources" },
   ];
 
   // Adds event listener to listen for scroll events
