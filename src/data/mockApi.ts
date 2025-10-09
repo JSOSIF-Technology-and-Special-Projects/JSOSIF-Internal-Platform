@@ -919,13 +919,13 @@ export const mockApiData = {
 	],
 	users: [
 		{
-			email: 'admin',
+			email: 'admin@a',
 			password: 'admin',
 			name: 'Admin User',
 			role: 'Admin',
 		},
 		{
-			email: 'user',
+			email: 'user@u',
 			password: 'user',
 			name: 'Regular User',
 			role: 'User',
