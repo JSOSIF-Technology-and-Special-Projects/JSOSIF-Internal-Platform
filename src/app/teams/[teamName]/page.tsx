@@ -44,8 +44,8 @@ interface TeamData {
   bondTicker?: BondTicker[];
 }
 
-export default function TeamPage({ params }: { params: { teamName: string } }) {
-  const teamName = params.teamName;
+export default async function TeamPage({ params }: { params: { teamName: string } }) {
+  const { teamName } = await params;
   const teamData = mockApiData.investmentDivisions.find(
     (division) => division.slug === teamName
   ) as TeamData;
