@@ -1,7 +1,13 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
-export default function Home() {
-  return (
-    redirect('/login')
-  );
+export default async function Home() {
+  const cookieStore = await cookies();
+  const user = cookieStore.get("user");
+
+  if (!user) {
+    redirect("/login");
+  } else {
+    redirect("/homepage");
+  }
 }
