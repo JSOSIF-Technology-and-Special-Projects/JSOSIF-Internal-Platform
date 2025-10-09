@@ -919,6 +919,18 @@ export const mockApiData = {
 	],
 	users: [
 		{
+			email: 'admin',
+			password: 'admin',
+			name: 'Admin User',
+			role: 'Admin',
+		},
+		{
+			email: 'user',
+			password: 'user',
+			name: 'Regular User',
+			role: 'User',
+		},
+		{
 			email: 'jsweet@uwindsor.ca',
 			password: 'sweet',
 			name: 'Jacob Sweet',
