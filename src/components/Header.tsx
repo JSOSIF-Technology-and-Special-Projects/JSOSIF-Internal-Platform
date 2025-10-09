@@ -26,7 +26,7 @@ export default function Header() {
       name: "Teams",
       href: "/teams",
       childPaths: [
-        { name: "Technology & Healthcare", href: "/teams/technology-and-healthcare" },
+        { name: "Fixed Income and Real Estate", href: "/teams/fixed-income-real-estate" },
         { name: "Financial Institutions", href: "/teams/financial-institutions" },
         { name: "Tech, Media & Telecommunications", href: "/teams/tech-media-telecommunications" },
         { name: "Consumer & Retail", href: "/teams/consumer-retail" },

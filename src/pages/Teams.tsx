@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function TeamsPage() {
   const teams = [
-    { name: 'Technology and Healthcare', slug: 'technology-and-healthcare' },
+    { name: 'Fixed Income and Real Estate', slug: 'fixed-income-real-estate' },
     { name: 'Financial Institutions', slug: 'financial-institutions' },
     { name: 'Tech, Media & Telecommunications', slug: 'tech-media-telecommunications' },
     { name: 'Consumer & Retail', slug: 'consumer-retail' },
