@@ -108,10 +108,10 @@ export default function Header() {
           <div className="hover:cursor-pointer w-fit mr-0 shrink-0">
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 sm:relative sm:left-auto sm:transform-none">
               <Link
-                href="/"
+                href="/homepage"
                 passHref
                 legacyBehavior
-                aira-labal="Back to home"
+                aira-label="Back to home"
                 className="hover:cursor-pointer"
               >
                 <Image
