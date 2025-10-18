@@ -12,29 +12,29 @@ export const mockApiData = {
 		assetsUnderManagement: 261000,
 	},
 	investmentDivisions: [
-		{
-			slug: "technology-and-healthcare",
-			name: "Technology and Healthcare",
-			description:
-				"Combined technology and healthcare investment division focusing on innovation and growth opportunities.",
-			tickers: "MGOL|12M,LTRY|12M,NVDA|12M,F|12M",
-			value: 25000,
-			return: 15,
-			sp500Return: -5,
-			portfolioComposition: [
-				{ symbol: "MGOL", name: "MGO Global Inc.", percentage: 35, color: "#FF6B6B" },
-				{ symbol: "LTRY", name: "Lottery.com Inc.", percentage: 25, color: "#4ECDC4" },
-				{ symbol: "NVDA", name: "NVIDIA Corporation", percentage: 30, color: "#45B7D1" },
-				{ symbol: "F", name: "Ford Motor Company", percentage: 10, color: "#96CEB4" }
-			],
-			holdings: [
-				{ symbol: "MGOL", name: "MGO Global Inc.", price: 0.1693, change: 0.0303, changePercent: 3.15, volume: 315155155 },
-				{ symbol: "LTRY", name: "Lottery.com Inc.", price: 1.4699, change: 0.98, changePercent: 22.64, volume: 463757 },
-				{ symbol: "NVDA", name: "NVIDIA Corporation", price: 127.4499, change: 2.6199, changePercent: 26.19, volume: 188811275 },
-				{ symbol: "F", name: "Ford Motor Company", price: 9.35, change: -0.66, changePercent: -6.6, volume: 167836690 }
-			],
-			bgImage: healthCare,
-		},
+		// {
+		// 	slug: "technology-and-healthcare",
+		// 	name: "Technology and Healthcare",
+		// 	description:
+		// 		"Combined technology and healthcare investment division focusing on innovation and growth opportunities.",
+		// 	tickers: "MGOL|12M,LTRY|12M,NVDA|12M,F|12M",
+		// 	value: 25000,
+		// 	return: 15,
+		// 	sp500Return: -5,
+		// 	portfolioComposition: [
+		// 		{ symbol: "MGOL", name: "MGO Global Inc.", percentage: 35, color: "#FF6B6B" },
+		// 		{ symbol: "LTRY", name: "Lottery.com Inc.", percentage: 25, color: "#4ECDC4" },
+		// 		{ symbol: "NVDA", name: "NVIDIA Corporation", percentage: 30, color: "#45B7D1" },
+		// 		{ symbol: "F", name: "Ford Motor Company", percentage: 10, color: "#96CEB4" }
+		// 	],
+		// 	holdings: [
+		// 		{ symbol: "MGOL", name: "MGO Global Inc.", price: 0.1693, change: 0.0303, changePercent: 3.15, volume: 315155155 },
+		// 		{ symbol: "LTRY", name: "Lottery.com Inc.", price: 1.4699, change: 0.98, changePercent: 22.64, volume: 463757 },
+		// 		{ symbol: "NVDA", name: "NVIDIA Corporation", price: 127.4499, change: 2.6199, changePercent: 26.19, volume: 188811275 },
+		// 		{ symbol: "F", name: "Ford Motor Company", price: 9.35, change: -0.66, changePercent: -6.6, volume: 167836690 }
+		// 	],
+		// 	bgImage: healthCare,
+		// },
 		{
 			slug: "financial-institutions",
 			name: "Financial Institutions",
@@ -918,6 +918,18 @@ export const mockApiData = {
 		},
 	],
 	users: [
+		{
+			email: 'admin@a',
+			password: 'admin',
+			name: 'Admin User',
+			role: 'Admin',
+		},
+		{
+			email: 'user@u',
+			password: 'user',
+			name: 'Regular User',
+			role: 'User',
+		},
 		{
 			email: 'jsweet@uwindsor.ca',
 			password: 'sweet',
