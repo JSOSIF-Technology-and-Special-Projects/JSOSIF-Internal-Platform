@@ -2,32 +2,36 @@
 import { prisma } from "@/utils/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export default async function deleteTeam({ teamId }: { teamId: string }) {
-  if (!teamId || !/^[0-9a-fA-F-]{36}$/.test(teamId)) {
+export default async function deleteHolding({
+  holdingId,
+}: {
+  holdingId: string;
+}) {
+  if (!holdingId || !/^[0-9a-fA-F-]{36}$/.test(holdingId)) {
     return {
-      message: "Valid teamId (UUID) is required",
+      message: "Valid holdingId (UUID) is required",
       error: "Valid UUID is required",
     };
   }
 
   try {
-    const team = await prisma.team.delete({
+    const holding = await prisma.holding.delete({
       where: {
-        id: teamId,
+        id: holdingId,
       },
     });
 
     return {
-      message: "Team deleted successfully",
-      data: team,
+      message: "Holding deleted successfully",
+      data: holding,
     };
   } catch (error) {
     console.error("Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
         return {
-          message: "Team not found",
-          error: "Team not found",
+          message: "Holding not found",
+          error: "Holding not found",
         };
       }
     }

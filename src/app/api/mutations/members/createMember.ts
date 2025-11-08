@@ -1,63 +1,86 @@
 "use server";
-import { neon } from "@neondatabase/serverless";
+import { prisma } from "@/utils/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
-export default async function createMember({
-	firstname,
-	lastname,
-	role,
-	program,
-	year,
-	joined,
-	image,
-	linkedIn,
-	teamId,
-}: {
-	firstname: string;
-	lastname: string;
-	role: string;
-	program: string;
-	year: string;
-	joined: string;
-	image: string;
-	linkedIn: string;
-	teamId: string;
-}) {
-	if (
-		!firstname ||
-		!lastname ||
-		!role ||
-		!program ||
-		!year
-		// || !joined
-		// || !teamId // TODO: ADD BACK IN WHEN TEAMS ARE IMPLEMENTED
-	)
-		return {
-			message: `Missing required field(s) (firstname, lastname, role, program, year, joined, teamId)`,
-			error: "Missing required field(s) (firstname, lastname, role, program, year, joined, teamId)",
-		};
+export interface CreateMemberInput {
+  name: string;
+  description?: string;
+  program: string;
+  year: number;
+  memberSince: string | Date; // ISO date string or Date object
+  linkedin?: string;
+  roleId?: string;
+  teamId?: string;
+}
 
-	try {
-		const DATABASE_URL = process.env.DATABASE_URL;
-		if (!DATABASE_URL) return { message: "Missing DATABASE_URL from env" };
-		const query = neon(DATABASE_URL);
+export default async function createMember(input: CreateMemberInput) {
+  // Validation
+  if (!input.name || !input.program || !input.year || !input.memberSince) {
+    return {
+      message: "Missing required field(s) (name, program, year, memberSince)",
+      error: "Missing required fields",
+    };
+  }
 
-		const response = await query(
-			// "INSERT INTO members (firstname, lastname, role, program, year, joined, image, linkedin, teamid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
-			"INSERT INTO members (firstname, lastname, role, program, year, image, linkedin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-			[
-				firstname,
-				lastname,
-				role,
-				program,
-				year,
-				// joined,
-				image ?? "",
-				linkedIn ?? "",
-				// teamId,
-			]
-		);
-		return { message: "Member created successfully", data: response[0] };
-	} catch (error) {
-		return { message: "Database error", error };
-	}
+  // Validate year range (1-8)
+  if (input.year < 1 || input.year > 8) {
+    return {
+      message: "Year must be between 1 and 8",
+      error: "Invalid year value",
+    };
+  }
+
+  try {
+    const memberData: Prisma.MemberCreateInput = {
+      name: input.name,
+      description: input.description,
+      program: input.program,
+      year: input.year,
+      memberSince: new Date(input.memberSince),
+      ...(input.linkedin && { linkedin: input.linkedin }),
+      ...(input.roleId && {
+        role: {
+          connect: { id: input.roleId },
+        },
+      }),
+      ...(input.teamId && {
+        team: {
+          connect: { id: input.teamId },
+        },
+      }),
+    };
+
+    const member = await prisma.member.create({
+      data: memberData,
+      include: {
+        role: true,
+        team: true,
+      },
+    });
+
+    return {
+      message: "Member created successfully",
+      data: member,
+    };
+  } catch (error) {
+    console.error("Database error:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return {
+          message: "Database error",
+          error: "A member with this LinkedIn URL already exists",
+        };
+      }
+      if (error.code === "P2025") {
+        return {
+          message: "Database error",
+          error: "Referenced role or team not found",
+        };
+      }
+    }
+    return {
+      message: "Database error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }

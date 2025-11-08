@@ -1,15 +1,39 @@
 "use server";
-import { neon } from "@neondatabase/serverless";
+import { prisma } from "@/utils/prisma";
 
 export async function listMembers() {
-	try {
-		const DATABASE_URL = process.env.DATABASE_URL;
-		if (!DATABASE_URL) return { message: "Missing DATABASE_URL from env" };
-		const query = neon(DATABASE_URL);
+  try {
+    const members = await prisma.member.findMany({
+      include: {
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
 
-		const response = await query("SELECT * FROM members", []);
-		return { message: "List query ran successfully", data: response };
-	} catch (error) {
-		return { message: "Database error", error };
-	}
+    return {
+      message: "List query ran successfully",
+      data: members,
+    };
+  } catch (error) {
+    console.error("Database error:", error);
+    return {
+      message: "Database error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }

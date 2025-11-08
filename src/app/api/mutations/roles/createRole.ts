@@ -2,21 +2,21 @@
 import { prisma } from "@/utils/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export interface CreateTeamInput {
+export interface CreateRoleInput {
   name: string;
   description?: string;
 }
 
-export default async function createTeam(input: CreateTeamInput) {
+export default async function createRole(input: CreateRoleInput) {
   if (!input.name) {
     return {
-      message: "Name is required",
+      message: "Missing required field: name",
       error: "Name is required",
     };
   }
 
   try {
-    const team = await prisma.team.create({
+    const role = await prisma.role.create({
       data: {
         name: input.name,
         description: input.description,
@@ -24,8 +24,8 @@ export default async function createTeam(input: CreateTeamInput) {
     });
 
     return {
-      message: "Team created successfully",
-      data: team,
+      message: "Role created successfully",
+      data: role,
     };
   } catch (error) {
     console.error("Database error:", error);
@@ -33,7 +33,7 @@ export default async function createTeam(input: CreateTeamInput) {
       if (error.code === "P2002") {
         return {
           message: "Database error",
-          error: "A team with this name already exists",
+          error: "A role with this name already exists",
         };
       }
     }
