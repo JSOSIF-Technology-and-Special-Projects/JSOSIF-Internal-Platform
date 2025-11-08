@@ -1,26 +1,32 @@
 "use server";
 import { prisma } from "@/utils/prisma";
 
-export async function listAlumni() {
+export async function listHoldings() {
   try {
-    const alumni = await prisma.alumni.findMany({
+    const holdings = await prisma.holding.findMany({
       include: {
-        formerMember: {
+        team: {
           select: {
             id: true,
             name: true,
-            program: true,
           },
         },
       },
-      orderBy: {
-        name: "asc",
-      },
+      orderBy: [
+        {
+          team: {
+            name: "asc",
+          },
+        },
+        {
+          ticker: "asc",
+        },
+      ],
     });
 
     return {
       message: "List query ran successfully",
-      data: alumni,
+      data: holdings,
     };
   } catch (error) {
     console.error("Database error:", error);

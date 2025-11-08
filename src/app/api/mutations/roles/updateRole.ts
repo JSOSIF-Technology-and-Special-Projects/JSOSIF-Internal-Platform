@@ -2,22 +2,22 @@
 import { prisma } from "@/utils/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
-export interface UpdateTeamInput {
+export interface UpdateRoleInput {
   name?: string;
   description?: string;
 }
 
-export default async function updateTeam({
-  teamId,
+export default async function updateRole({
+  roleId,
   input,
 }: {
-  teamId: string;
-  input: UpdateTeamInput;
+  roleId: string;
+  input: UpdateRoleInput;
 }) {
-  if (!teamId || !/^[0-9a-fA-F-]{36}$/.test(teamId)) {
+  if (!roleId) {
     return {
-      message: "Valid teamId (UUID) is required",
-      error: "Valid UUID is required",
+      message: "Role ID is required",
+      error: "Role ID is required",
     };
   }
 
@@ -29,9 +29,9 @@ export default async function updateTeam({
   }
 
   try {
-    const team = await prisma.team.update({
+    const role = await prisma.role.update({
       where: {
-        id: teamId,
+        id: roleId,
       },
       data: {
         ...(input.name !== undefined && { name: input.name }),
@@ -42,22 +42,22 @@ export default async function updateTeam({
     });
 
     return {
-      message: "Team updated successfully",
-      data: team,
+      message: "Role updated successfully",
+      data: role,
     };
   } catch (error) {
     console.error("Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
         return {
-          message: "Team not found",
-          error: "Team not found",
+          message: "Database error",
+          error: "Role not found",
         };
       }
       if (error.code === "P2002") {
         return {
           message: "Database error",
-          error: "A team with this name already exists",
+          error: "A role with this name already exists",
         };
       }
     }

@@ -1,31 +1,39 @@
 "use server";
-import { neon } from "@neondatabase/serverless";
+import { prisma } from "@/utils/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
 export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
-	// Validate UUID format before querying
-	if (!alumniId || !/^[0-9a-fA-F-]{36}$/.test(alumniId)) {
-		return { message: "Valid alumniId (UUID) is required" };
-	}
+  if (!alumniId || !/^[0-9a-fA-F-]{36}$/.test(alumniId)) {
+    return {
+      message: "Valid alumniId (UUID) is required",
+      error: "Valid UUID is required",
+    };
+  }
 
-	try {
-		const DATABASE_URL = process.env.DATABASE_URL;
-		if (!DATABASE_URL) return { message: "Missing DATABASE_URL from env" };
-		const query = neon(DATABASE_URL);
+  try {
+    const alumni = await prisma.alumni.delete({
+      where: {
+        id: alumniId,
+      },
+    });
 
-		const response = await query(
-			"DELETE FROM alumni WHERE alumniid = $1::UUID RETURNING *",
-			[alumniId]
-		);
-
-		if (response.length === 0) {
-			return { message: "Alumni not found" };
-		}
-
-		return {
-			message: "Alumni deleted successfully",
-			alumni: response[0],
-		};
-	} catch (error) {
-		return { message: "Database error", error };
-	}
+    return {
+      message: "Alumni deleted successfully",
+      data: alumni,
+    };
+  } catch (error) {
+    console.error("Database error:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return {
+          message: "Alumni not found",
+          error: "Alumni not found",
+        };
+      }
+    }
+    return {
+      message: "Database error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }

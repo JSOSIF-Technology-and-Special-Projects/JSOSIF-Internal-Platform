@@ -1,31 +1,39 @@
 "use server";
-import { neon } from "@neondatabase/serverless";
+import { prisma } from "@/utils/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 
 export default async function deleteMember({ memberId }: { memberId: string }) {
-	// Validate UUID format before querying
-	if (!memberId || !/^[0-9a-fA-F-]{36}$/.test(memberId)) {
-		return { message: "Valid memberId (UUID) is required" };
-	}
+  if (!memberId || !/^[0-9a-fA-F-]{36}$/.test(memberId)) {
+    return {
+      message: "Valid memberId (UUID) is required",
+      error: "Valid UUID is required",
+    };
+  }
 
-	try {
-		const DATABASE_URL = process.env.DATABASE_URL;
-		if (!DATABASE_URL) return { message: "Missing DATABASE_URL from env" };
-		const query = neon(DATABASE_URL);
+  try {
+    const member = await prisma.member.delete({
+      where: {
+        id: memberId,
+      },
+    });
 
-		const response = await query(
-			"DELETE FROM members WHERE memberid = $1::UUID RETURNING *",
-			[memberId]
-		);
-
-		if (response.length === 0) {
-			return { message: "Member not found" };
-		}
-
-		return {
-			message: "Member deleted successfully",
-			data: response[0],
-		};
-	} catch (error) {
-		return { message: "Database error", error };
-	}
+    return {
+      message: "Member deleted successfully",
+      data: member,
+    };
+  } catch (error) {
+    console.error("Database error:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return {
+          message: "Member not found",
+          error: "Member not found",
+        };
+      }
+    }
+    return {
+      message: "Database error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
