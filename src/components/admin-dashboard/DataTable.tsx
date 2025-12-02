@@ -3,15 +3,15 @@
 import React, { useEffect } from "react";
 
 export interface Header {
-	key: string;
-	label: string;
-	isNameKey?: boolean;
-	resolver?: (row: any) => any;
-	sortable?: boolean;
-	sortKey?: string;
-	sortDirection?: "asc" | "desc";
-	onClick?: (key: string) => void;
-	styles?: string;
+  key: string;
+  label: string;
+  isNameKey?: boolean;
+  resolver?: (row: any) => any;
+  sortable?: boolean;
+  sortKey?: string;
+  sortDirection?: "asc" | "desc";
+  onClick?: (key: string) => void;
+  styles?: string;
 }
 
 interface DatatableProps {
@@ -35,61 +35,61 @@ export default function DataTable({
 	inspectLink,
 	onDelete,
 }: DatatableProps) {
-	// The field that represents the name of the item
-	const nameKey = headers.find((header) => header.isNameKey)?.key ?? "name";
+  // The field that represents the name of the item
+  const nameKey = headers.find((header) => header.isNameKey)?.key ?? "name";
 
-	function findKeyValue(row: any, headers: Header) {
-		let keyValue = "";
+  function findKeyValue(row: any, headers: Header) {
+    let keyValue = "";
 
-		// If the header has a resolver, use it
-		if (headers?.resolver) return headers.resolver(row);
+    // If the header has a resolver, use it
+    if (headers?.resolver) return headers.resolver(row);
 
-		// If the header has a key, use it
-		const key = headers.key.split(".");
-		for (let i = 0; i < key.length; i++) {
-			// If the value is undefined or null, return an empty string
-			if (typeof row[key[i]] == "undefined" || row[key[i]] == null)
-				return keyValue;
-			keyValue = row[key[i]];
-		}
-		// If the value is a boolean, return a checkmark or an x TODO: Update the icons so it doesnt look ugly
-		if (typeof keyValue == "boolean") {
-			if (keyValue) return "✓";
-			else return "✗";
-		}
+    // If the header has a key, use it
+    const key = headers.key.split(".");
+    for (let i = 0; i < key.length; i++) {
+      // If the value is undefined or null, return an empty string
+      if (typeof row[key[i]] == "undefined" || row[key[i]] == null)
+        return keyValue;
+      keyValue = row[key[i]];
+    }
+    // If the value is a boolean, return a checkmark or an x TODO: Update the icons so it doesnt look ugly
+    if (typeof keyValue == "boolean") {
+      if (keyValue) return "✓";
+      else return "✗";
+    }
 
-		return keyValue;
-	}
+    return keyValue;
+  }
 
-	useEffect(() => {
-		console.log(initialData);
-	}, [initialData]);
+  useEffect(() => {
+    console.log(initialData);
+  }, [initialData]);
 
-	return (
-		<div className="h-full w-full">
-			{/* Table options/dropdowns */}
-			<div className="border rounded-2xl p-8">
-				<div className="flex justify-between items-center px-4">
-					<div className="text-sm">{description}</div>
-					<div>
-						<button
-							onClick={onCreateClick}
-							className="btn flex items-center gap-2 shrink-0"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 24 24"
-								className="w-5 h-5"
-							>
-								<path
-									fill="currentColor"
-									d="M12 21q-.425 0-.712-.288T11 20v-7H4q-.425 0-.712-.288T3 12t.288-.712T4 11h7V4q0-.425.288-.712T12 3t.713.288T13 4v7h7q.425 0 .713.288T21 12t-.288.713T20 13h-7v7q0 .425-.288.713T12 21"
-								/>
-							</svg>{" "}
-							Add New {modelName}
-						</button>
-					</div>
-				</div>
+  return (
+    <div className="h-full w-full">
+      {/* Table options/dropdowns */}
+      <div className="border rounded-2xl p-8">
+        <div className="flex justify-between items-center px-4">
+          <div className="text-sm">{description}</div>
+          <div>
+            <button
+              onClick={onCreateClick}
+              className="btn flex items-center gap-2 shrink-0"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                className="w-5 h-5"
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 21q-.425 0-.712-.288T11 20v-7H4q-.425 0-.712-.288T3 12t.288-.712T4 11h7V4q0-.425.288-.712T12 3t.713.288T13 4v7h7q.425 0 .713.288T21 12t-.288.713T20 13h-7v7q0 .425-.288.713T12 21"
+                />
+              </svg>{" "}
+              Add New {modelName}
+            </button>
+          </div>
+        </div>
 
 				{/* Table */}
 				<div className="mt-4">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
 import dynamic from "next/dynamic";
 const SymbolOverviewWidget = dynamic(
