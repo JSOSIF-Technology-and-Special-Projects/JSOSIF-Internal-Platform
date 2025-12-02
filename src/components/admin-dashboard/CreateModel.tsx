@@ -15,7 +15,7 @@ export interface CreateField {
 		| "image"
 		| "multiple-select";
 	value?: any;
-	extraArgs?: string[];
+	extraArgs?: any;
 	readonly?: boolean;
 }
 
@@ -98,7 +98,7 @@ export default function CreateModel({
 				...inputs,
 				...extraArgs,
 			});
-			if (result.errors) {
+			if (result?.errors) {
 				let message =
 					"Error creating " +
 					modelName.charAt(0).toLowerCase() +
@@ -109,7 +109,7 @@ export default function CreateModel({
 				}
 				console.error(message);
 			} else if (afterCreate) {
-				afterCreate(result.data);
+				afterCreate(result?.data);
 			}
 		} catch (error) {
 			console.error(error);
@@ -190,10 +190,106 @@ export default function CreateModel({
 									/>
 								</div>
 							)}
-							{field.type === "number" && <div></div>}
+							{field.type === "number" && (
+							<div>
+								<label
+								htmlFor={field.key}
+								className="block text-sm font-medium text-gray-700"
+								>
+								{field.label}
+								</label>
+
+								<input
+								id={field.key}
+								name={field.key}
+								type="number"
+								value={formData[field.key]?.value ?? ""}
+								onChange={(e) => {
+									const value =
+									e.target.value === "" ? null : Number(e.target.value);
+
+									setFormData((prev: any) => ({
+									...prev,
+									[field.key]: {
+										...prev[field.key],
+										value,
+									},
+									}));
+								}}
+								className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm h-10 
+											focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+								/>
+							</div>
+							)}
+
 							{field.type === "textarea" && <div></div>}
-							{field.type === "select" && <div></div>}
+							{field.type === "select" && (
+								<div className="flex flex-col h-full">
+									<label
+										htmlFor={field.key}
+										className="block text-sm font-medium text-gray-700"
+									>
+										{field.label}
+									</label>
+
+									<select
+										id={field.key}
+										name={field.key}
+										value={formData[field.key]?.value ?? ""}
+										onChange={(e) => {
+											const value =
+												e.target.value === "" ? null : e.target.value;
+
+											setFormData((prev: any) => ({
+												...prev,
+												[field.key]: {
+													...prev[field.key],
+													value,
+												},
+											}));
+										}}
+										className="mt-1 block w-full border rounded-md p-1 bg-white flex-1"
+									>
+										<option value="">Select an option</option>
+
+										{field.extraArgs?.map((opt: { id: string; name: string }) => (
+											<option key={opt.id} value={opt.id}>
+												{opt.name}
+											</option>
+										))}
+									</select>
+								</div>
+							)}
 							{field.type === "boolean" && <div></div>}
+							{field.type === "date" && (
+							<div className="flex flex-col h-full">
+								<label
+								htmlFor={field.key}
+								className="block text-sm font-medium text-gray-700"
+								>
+								{field.label}
+								</label>
+
+								<input
+								id={field.key}
+								name={field.key}
+								type="date"
+								value={formData[field.key]?.value ?? ""}
+								onChange={(e) => {
+									const value = e.target.value === "" ? null : e.target.value;
+
+									setFormData((prev: any) => ({
+									...prev,
+									[field.key]: {
+										...prev[field.key],
+										value,
+									},
+									}));
+								}}
+								className="mt-1 block w-full border rounded-md p-1 bg-white flex-1"
+								/>
+							</div>
+							)}
 						</div>
 					))}
 					<div className="col-span-2 flex justify-end">

@@ -22,6 +22,7 @@ interface DatatableProps {
 	idKey: string;
 	description?: string;
 	inspectLink?: string;
+	onDelete?: (id: string | number, e?: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export default function DataTable({
@@ -32,6 +33,7 @@ export default function DataTable({
 	idKey,
 	description,
 	inspectLink,
+	onDelete,
 }: DatatableProps) {
 	// The field that represents the name of the item
 	const nameKey = headers.find((header) => header.isNameKey)?.key ?? "name";
@@ -91,7 +93,7 @@ export default function DataTable({
 
 				{/* Table */}
 				<div className="mt-4">
-					<div className="px-4 overflow-x-auto">
+					<div className="px-4 overflow-x-auto" id="data-table-wrapper">
 						<table className="h-full w-full">
 							<thead className="border-b h-10">
 								<tr className="text-left px-10">
@@ -134,8 +136,20 @@ export default function DataTable({
 													{i === 0 ? (
 														<>
 															<div className="right-0 top-1/2 -translate-y-1/2 absolute opacity-0 pointer-events-none flex group-hover:opacity-100 group-hover:pointer-events-auto gap-2 items-center h-full transition-all px-4 z-10">
-																<button className="w-8 h-8 rounded-full flex items-center justify-center p-1">
-																	<svg
+															<button
+																onClick={(e) => {
+																	e.stopPropagation();
+																	const id = findKeyValue(row, {
+																		key: idKey,
+																		label: "",
+																		resolver: (r) => r[idKey],
+																	});
+															
+																	onDelete?.(id, e); 
+																}}
+																className="w-8 h-8 rounded-full flex items-center justify-center p-1"
+														>
+															<svg
 																		xmlns="http://www.w3.org/2000/svg"
 																		viewBox="0 0 24 24"
 																	>
@@ -148,7 +162,8 @@ export default function DataTable({
 																			d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"
 																		/>
 																	</svg>
-																</button>
+														</button>
+
 															</div>
 															<a
 																href={`/app/${
@@ -195,7 +210,7 @@ export default function DataTable({
 							)}
 						</table>
 						{!initialData?.length && initialData[0] !== "empty" ? (
-							<div className="w-full py-10 flex flex-col gap-4 justify-center items-center text-center text-base-300">
+							<div className= "w-full py-10 flex flex-col gap-4 justify-center items-center text-center text-base-300">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
 									className="w-24 h-24 text-base-300"
