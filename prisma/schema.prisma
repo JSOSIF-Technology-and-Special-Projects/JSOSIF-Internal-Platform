@@ -111,20 +111,21 @@ model mfa_challenges {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model mfa_factors {
-  id                   String           @id @db.Uuid
-  user_id              String           @db.Uuid
-  friendly_name        String?
-  factor_type          factor_type
-  status               factor_status
-  created_at           DateTime         @db.Timestamptz(6)
-  updated_at           DateTime         @db.Timestamptz(6)
-  secret               String?
-  phone                String?
-  last_challenged_at   DateTime?        @unique @db.Timestamptz(6)
-  web_authn_credential Json?
-  web_authn_aaguid     String?          @db.Uuid
-  mfa_challenges       mfa_challenges[]
-  users                users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                           String           @id @db.Uuid
+  user_id                      String           @db.Uuid
+  friendly_name                String?
+  factor_type                  factor_type
+  status                       factor_status
+  created_at                   DateTime         @db.Timestamptz(6)
+  updated_at                   DateTime         @db.Timestamptz(6)
+  secret                       String?
+  phone                        String?
+  last_challenged_at           DateTime?        @unique @db.Timestamptz(6)
+  web_authn_credential         Json?
+  web_authn_aaguid             String?          @db.Uuid
+  last_webauthn_challenge_data Json?
+  mfa_challenges               mfa_challenges[]
+  users                        users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([user_id, phone], map: "unique_phone_factor_per_user")
   @@index([user_id, created_at], map: "factor_id_created_at_idx")
@@ -150,6 +151,7 @@ model oauth_authorizations {
   created_at            DateTime                   @default(now()) @db.Timestamptz(6)
   expires_at            DateTime                   @default(dbgenerated("(now() + '00:03:00'::interval)")) @db.Timestamptz(6)
   approved_at           DateTime?                  @db.Timestamptz(6)
+  nonce                 String?
   oauth_clients         oauth_clients              @relation(fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users                 users?                     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -285,22 +287,25 @@ model schema_migrations {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model sessions {
-  id              String           @id @db.Uuid
-  user_id         String           @db.Uuid
-  created_at      DateTime?        @db.Timestamptz(6)
-  updated_at      DateTime?        @db.Timestamptz(6)
-  factor_id       String?          @db.Uuid
-  aal             aal_level?
-  not_after       DateTime?        @db.Timestamptz(6)
-  refreshed_at    DateTime?        @db.Timestamp(6)
-  user_agent      String?
-  ip              String?          @db.Inet
-  tag             String?
-  oauth_client_id String?          @db.Uuid
-  mfa_amr_claims  mfa_amr_claims[]
-  refresh_tokens  refresh_tokens[]
-  oauth_clients   oauth_clients?   @relation(fields: [oauth_client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                     String           @id @db.Uuid
+  user_id                String           @db.Uuid
+  created_at             DateTime?        @db.Timestamptz(6)
+  updated_at             DateTime?        @db.Timestamptz(6)
+  factor_id              String?          @db.Uuid
+  aal                    aal_level?
+  not_after              DateTime?        @db.Timestamptz(6)
+  refreshed_at           DateTime?        @db.Timestamp(6)
+  user_agent             String?
+  ip                     String?          @db.Inet
+  tag                    String?
+  oauth_client_id        String?          @db.Uuid
+  refresh_token_hmac_key String?
+  refresh_token_counter  BigInt?
+  scopes                 String?
+  mfa_amr_claims         mfa_amr_claims[]
+  refresh_tokens         refresh_tokens[]
+  oauth_clients          oauth_clients?   @relation(fields: [oauth_client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                  users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([not_after(sort: Desc)])
   @@index([oauth_client_id])
@@ -416,75 +421,70 @@ model test_table {
   @@schema("public")
 }
 
-// Role model - represents a member's position or title within the organization
 model Role {
   id          String   @id @default(uuid()) @db.Uuid
-  name        String   @db.VarChar(255)
-  description String?  @db.Text
+  name        String   @unique @db.VarChar(255)
+  description String?
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
   members     Member[]
 
-  @@unique([name])
   @@index([name])
   @@map("roles")
   @@schema("public")
 }
 
-// Member model - represents an active participant or user of the fund
-// Note: roleId and teamId are nullable to support SetNull on delete, but should be required at application level
 model Member {
   id          String   @id @default(uuid()) @db.Uuid
   name        String   @db.VarChar(255)
-  description String?  @db.Text
+  description String?
   program     String   @db.VarChar(255)
-  year        Int // Range 1-8 (enforced at application level)
+  year        Int
   memberSince DateTime @map("member_since") @db.Date
   linkedin    String?  @unique @db.VarChar(255)
+  userId      String?  @unique @map("user_id") @db.Uuid
   roleId      String?  @map("role_id") @db.Uuid
   teamId      String?  @map("team_id") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-  role        Role?    @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  team        Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
   alumni      Alumni[]
+  role        Role?    @relation(fields: [roleId], references: [id])
+  team        Team?    @relation(fields: [teamId], references: [id])
 
   @@index([roleId])
   @@index([teamId])
   @@index([linkedin])
+  @@index([userId])
   @@map("members")
   @@schema("public")
 }
 
-// Team model - represents a team or investment group within the organization
 model Team {
   id          String    @id @default(uuid()) @db.Uuid
-  name        String    @db.VarChar(255)
-  description String?   @db.Text
+  name        String    @unique @db.VarChar(255)
+  description String?
+  teamType    String    @default("Investment") @map("team_type") @db.VarChar(50)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  members     Member[]
   holdings    Holding[]
+  members     Member[]
 
-  @@unique([name])
   @@index([name])
+  @@index([teamType])
   @@map("teams")
   @@schema("public")
 }
 
-// Holding model - represents a company or asset held by a team
-// Note: Validation constraints (amountInShares >= 0, costCad >= 0, divestDate >= investDate) 
-// should be enforced at application level or via database check constraints
 model Holding {
   id             String    @id @default(uuid()) @db.Uuid
   teamId         String    @map("team_id") @db.Uuid
   ticker         String    @db.VarChar(255)
   name           String    @db.VarChar(255)
-  description    String?   @db.Text
+  description    String?
   investDate     DateTime  @map("invest_date") @db.Date
   divestDate     DateTime? @map("divest_date") @db.Date
-  amountInShares Int       @map("amount_in_shares") // Should be >= 0
-  costCad        Decimal   @db.Decimal(18, 2) // Should be >= 0
+  amountInShares Int       @map("amount_in_shares")
+  costCad        Decimal   @db.Decimal(18, 2)
   industry       String?   @db.VarChar(255)
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -497,21 +497,19 @@ model Holding {
   @@schema("public")
 }
 
-// Alumni model - represents a former member and their post-fund information
-// Note: yearsOnFund should be >= 0 (enforced at application level)
 model Alumni {
   id             String   @id @default(uuid()) @db.Uuid
   name           String   @db.VarChar(255)
-  description    String?  @db.Text
+  description    String?
   companyName    String   @map("company_name") @db.VarChar(255)
   industry       String   @db.VarChar(255)
   degree         String   @db.VarChar(255)
-  yearsOnFund    Int      @map("years_on_fund") // Should be >= 0
+  yearsOnFund    Int      @map("years_on_fund")
   linkedin       String?  @unique @db.VarChar(255)
   formerMemberId String?  @map("former_member_id") @db.Uuid
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-  formerMember   Member?  @relation(fields: [formerMemberId], references: [id], onDelete: SetNull)
+  formerMember   Member?  @relation(fields: [formerMemberId], references: [id])
 
   @@index([formerMemberId])
   @@index([linkedin])
@@ -519,11 +517,10 @@ model Alumni {
   @@schema("public")
 }
 
-// Announcement model - represents official updates, news, or upcoming events
 model Announcement {
   id          String   @id @default(uuid()) @db.Uuid
   title       String   @db.VarChar(255)
-  information String   @db.Text
+  information String
   publishedAt DateTime @map("published_at") @db.Timestamptz(6)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
