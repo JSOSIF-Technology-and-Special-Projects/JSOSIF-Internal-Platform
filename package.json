@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "npx tsx prisma/seedRoles.ts",
+    "seed:users": "npx tsx prisma/seedUsers.ts",
+    "seed:teams": "npx tsx prisma/seedTeams.ts"
   },
   "dependencies": {
     "@google-analytics/data": "^4.12.1",
