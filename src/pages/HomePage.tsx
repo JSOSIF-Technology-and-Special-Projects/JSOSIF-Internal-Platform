@@ -93,7 +93,7 @@ export default function Homepage() {
       ) 
     },
     {
-      title: "Google Drive",
+      title: "Sharepoint",
       description: "Access shared documents and resources quickly",
       href: "https://uwin365.sharepoint.com/sites/jsosif/Shared%20Documents/Forms/AllItems.aspx", 
       icon: (
@@ -106,10 +106,10 @@ export default function Homepage() {
 
   const announcements: AnnouncementProps[] = [
     {
-      title: "Example Announcement",
-      message: "This is an example announcement.",
-      date: "February 31st 3037",
-      author: "JSOSIF C-Suite"
+      title: "First Usage!",
+      message: "Any bugs, errors, or suggestions? Email hadrel@uwindsor.ca.",
+      date: "March 4th 2026",
+      author: "Landon Hadre"
     },
   ];
 

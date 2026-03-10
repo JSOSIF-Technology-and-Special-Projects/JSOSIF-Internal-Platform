@@ -19,7 +19,6 @@ export default function Teams() {
         const investmentTeams =
           res.data?.filter((team: any) => team.teamType === "Investment") || [];
         setData(investmentTeams);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -61,7 +60,6 @@ export default function Teams() {
         const investmentTeams =
           res.data?.filter((team: any) => team.teamType === "Investment") || [];
         setData(investmentTeams);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }

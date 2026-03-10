@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 
 export interface Header {
   key: string;
@@ -35,9 +35,6 @@ export default function DataTable({
 	inspectLink,
 	onDelete,
 }: DatatableProps) {
-  // The field that represents the name of the item
-  const nameKey = headers.find((header) => header.isNameKey)?.key ?? "name";
-
   function findKeyValue(row: any, headers: Header) {
     let keyValue = "";
 
@@ -60,10 +57,6 @@ export default function DataTable({
 
     return keyValue;
   }
-
-  useEffect(() => {
-    console.log(initialData);
-  }, [initialData]);
 
   return (
     <div className="h-full w-full">

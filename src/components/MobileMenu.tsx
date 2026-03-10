@@ -14,9 +14,10 @@ interface MobileMenuProps {
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   pathname: string | null;
   paths: Path[];
+  onLogout: () => void;
 }
 
-export default function MobileMenu({ setMenuOpen, pathname, paths }: MobileMenuProps) {
+export default function MobileMenu({ setMenuOpen, pathname, paths, onLogout }: MobileMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<Record<string, boolean>>({});
 
   const toggleDropdown = (name: string) => {
@@ -64,9 +65,15 @@ export default function MobileMenu({ setMenuOpen, pathname, paths }: MobileMenuP
         ))}
 
         {/* Logout */}
-        <Link href="/login">
-          <span onClick={() => setMenuOpen(false)} className="px-4 sm:px-12 py-1 text-2xl rounded hover:text-[#0E5791] text-gray-600 mt-4">Logout</span>
-        </Link>
+        <button
+          onClick={() => {
+            setMenuOpen(false);
+            onLogout();
+          }}
+          className="px-4 sm:px-12 py-1 text-left text-2xl rounded hover:text-[#0E5791] text-gray-600 mt-4"
+        >
+          Logout
+        </button>
       </nav>
     </div>
   );

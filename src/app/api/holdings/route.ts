@@ -2,8 +2,6 @@ import { prisma } from "../../../utils/prisma";
 
 export async function GET() {
     try {
-        await prisma.$connect();
-    
         const holdings = await prisma.holding.findMany({
           include: {
             team: {
@@ -36,15 +34,11 @@ export async function GET() {
           },
           { status: 500 }
         );
-      } finally {
-        await prisma.$disconnect();
       }
 }
 
 export async function POST(req: Request) {
   try {
-    await prisma.$connect();
-
     const body = await req.json();
 
     const data = {
@@ -73,23 +67,19 @@ export async function POST(req: Request) {
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 
 }
 
 export async function DELETE(req: Request) {
   try {
-    await prisma.$connect();
-
     const id = await req.json();
 
     const deleted = await prisma.holding.delete({
       where: { id }, 
     });
     
-    return Response.json(JSON.stringify(deleted), {status: 200});
+    return Response.json(deleted, {status: 200});
 
   } catch (error) {
     console.error("Prisma error:", error);
@@ -101,8 +91,5 @@ export async function DELETE(req: Request) {
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
-

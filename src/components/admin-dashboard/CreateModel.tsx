@@ -1,5 +1,4 @@
 "use client";
-import { after } from "node:test";
 import React, { useState, useEffect } from "react";
 
 export interface CreateField {
@@ -40,8 +39,6 @@ export default function CreateModel({
 	afterCreate,
 	extraArgs,
 }: CreateModelProps) {
-	const [inputs, setInputs] = React.useState<any>({});
-
 	const [formData, setFormData] = useState<any>({});
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -69,8 +66,8 @@ export default function CreateModel({
 	}, []);
 
 	async function handleSubmit() {
-		setLoading(true);
 		if (loading) return;
+		setLoading(true);
 		const inputs = Object.fromEntries(
 			Object.keys(formData).map((key) => {
 				let tempKey = key;
@@ -176,7 +173,7 @@ export default function CreateModel({
 										type="text"
 										name={field.key}
 										id={field.key}
-										value={field.value}
+										value={formData[field.key]?.value ?? ""}
 										onChange={(e) => {
 											setFormData((prev: any) => ({
 												...prev,
