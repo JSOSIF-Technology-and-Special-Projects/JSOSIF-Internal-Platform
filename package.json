@@ -25,7 +25,8 @@
     "react-pdf": "^10.2.0",
     "react-ts-tradingview-widgets": "^1.2.6",
     "recharts": "^3.2.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yahoo-finance2": "^3.13.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
