@@ -4,13 +4,23 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ["pdf-parse", "@prisma/client", ".prisma/client", "yahoo-finance2"],
+  serverExternalPackages: [
+    "pdf-parse",
+    "@prisma/client",
+    ".prisma/client",
+    "yahoo-finance2",
+  ],
   webpack: (config, { isServer }) => {
     if (isServer) {
-      const existing = Array.isArray(config.externals) ? config.externals : [config.externals].filter(Boolean);
+      const existing = Array.isArray(config.externals)
+        ? config.externals
+        : [config.externals].filter(Boolean);
       config.externals = [
         ...existing,
-        ({ request }: { request?: string }, callback: (err?: Error | null, result?: string) => void) => {
+        (
+          { request }: { request?: string },
+          callback: (err?: Error | null, result?: string) => void,
+        ) => {
           if (request?.startsWith("node:")) {
             return callback(null, `commonjs ${request}`);
           }
@@ -19,6 +29,10 @@ const nextConfig: NextConfig = {
       ];
     }
     return config;
+  },
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./src/generated/prisma/**/*"],
+    "/**/*": ["./src/generated/prisma/**/*"],
   },
 };
 
