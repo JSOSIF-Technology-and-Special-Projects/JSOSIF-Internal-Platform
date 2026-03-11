@@ -1,11 +1,10 @@
 "use server";
 import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/utils/prisma";
-import { generateRandomPassword } from "@/utils/passwordUtils";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // server-only
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // server-only
 );
 
 /**
@@ -45,6 +44,18 @@ export async function createAuthUser(
         const existingUser = users?.users?.find((u) => u.email === email);
 
         if (existingUser?.id) {
+          // Ensure seeded temp password works even for already-existing users.
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+            existingUser.id,
+            {
+              password,
+              email_confirm: true,
+            }
+          );
+          if (updateError) {
+            return { userId: null, error: updateError.message };
+          }
+
           // Update profile if it exists, or create it
           await prisma.profiles.upsert({
             where: { id: existingUser.id },

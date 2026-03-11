@@ -2,14 +2,14 @@ import { prisma } from "../../../utils/prisma";
 
 export async function GET() {
     try {
-        await prisma.$connect();
-    
         const teams = await prisma.team.findMany(
           {
             select: {
               id: true,
-              name: true
-            }
+              name: true,
+              teamType: true,
+            },
+            orderBy: { name: "asc" },
           }
         );
 
@@ -25,8 +25,5 @@ export async function GET() {
           },
           { status: 500 }
         );
-      } finally {
-        await prisma.$disconnect();
       }
 }
-

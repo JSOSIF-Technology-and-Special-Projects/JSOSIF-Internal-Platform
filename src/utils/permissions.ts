@@ -29,27 +29,35 @@ export async function getCurrentMemberRole() {
       };
     }
 
-    // Find member by userId (links to auth.users.id)
-    const member = await prisma.member.findFirst({
-      where: {
-        userId: user.id,
-      },
-      include: { role: true },
+    const profile = await prisma.profiles.findUnique({
+      where: { id: user.id },
     });
 
-    if (!member) {
+    if (profile?.role) {
       return {
         member: null,
-        role: null,
-        error: "Member not found for this user",
+        role: {
+          id: profile.id,
+          name: profile.role,
+          description: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        error: null,
       };
     }
 
-    if (!member.role) {
+    // Fallback to member->role for legacy users.
+    const member = await prisma.member.findFirst({
+      where: { userId: user.id },
+      include: { role: true },
+    });
+
+    if (!member || !member.role) {
       return {
         member: null,
         role: null,
-        error: "Member does not have a role assigned",
+        error: "No role found for this user",
       };
     }
 

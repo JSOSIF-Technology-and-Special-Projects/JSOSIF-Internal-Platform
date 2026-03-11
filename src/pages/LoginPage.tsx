@@ -4,13 +4,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/client';
 import jsosifbanner from '../assets/jsosifbanner.png';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -25,38 +22,41 @@ export default function LoginPage() {
     setPending(true);
 
     try {
-      // 1) Ensure a Supabase auth user exists (server-only service key)
-      await fetch("/api/auth/jit", { method: "POST", body: JSON.stringify({ email, password }) });
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      // 2) Sign in via Supabase Auth
       const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
       if (signInErr) {
-        setError(`Sign-in failed: ${signInErr.message}`); // you'll see the real reason next time
+        setError(`Sign-in failed: ${signInErr.message}`);
         return;
       }
 
 
-      // 3) Get role from your app profile table (id == auth user id)
+      // Get role from the profile table (id == auth user id)
       const userId = signInData.user?.id;
       let role = 'User';
       if (userId) {
         const { data: profile } = await supabase
-          .from('profiles')                // <-- make sure this table exists with columns: id uuid PK, role text
+          .from('profiles')
           .select('role')
           .eq('id', userId)
           .maybeSingle();
         if (profile?.role) role = profile.role;
       }
 
-      // 4) Route like before
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: signInData.user?.id,
+          email: signInData.user?.email,
+          role,
+        })
+      );
+
       if (role === 'Admin') {
         router.push('/admin-dashboard');
       } else {
         router.push('/homepage');
       }
-    } catch (err: any) {
-      setError(err?.message ?? 'Login failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setPending(false);
     }
