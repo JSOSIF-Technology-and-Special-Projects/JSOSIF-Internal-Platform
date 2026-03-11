@@ -2,11 +2,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { prisma } from "@/utils/prisma";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // server-only
-);
-
 /**
  * Creates a Supabase auth user and profile
  * Returns the user ID if successful
@@ -17,6 +12,18 @@ export async function createAuthUser(
   roleName: string = "User"
 ): Promise<{ userId: string | null; error: string | null }> {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return {
+        userId: null,
+        error: "Supabase environment variables are not configured",
+      };
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
     // Create user in Supabase Auth
     const { data: userData, error: createError } =
       await supabaseAdmin.auth.admin.createUser({

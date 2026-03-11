@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Ensure we use the Service Role Key to bypass security rules for bulk creation
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function GET() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return NextResponse.json(
+      {
+        message: "Supabase environment variables are not configured",
+      },
+      { status: 500 }
+    );
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
   // 1. FILL IN THE EMAILS HERE
   // Leave the email as "" if you don't want to create an account for that person yet.
   const membersData = [
@@ -102,8 +110,12 @@ export async function GET() {
       if (memberError) throw new Error(`Member Update Error: ${memberError.message}`);
 
       results.push({ name: member.name, status: "Success", authId: authUserId });
-    } catch (error: any) {
-      results.push({ name: member.name, status: "Failed", error: error.message });
+    } catch (error: unknown) {
+      results.push({
+        name: member.name,
+        status: "Failed",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   }
 

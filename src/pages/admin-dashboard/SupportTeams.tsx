@@ -1,21 +1,37 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
-import { mockApiData } from "@/data/mockApi";
-import createSupportTeam from "@/lib/mutations/supportTeams/createSupportTeam";
 import CreateModel, {
   CreateField,
 } from "@/components/admin-dashboard/CreateModel";
-import { listSupportTeams } from "@/lib/queries/supportTeams/listSupportTeams";
+
+async function getSupportTeams() {
+  const response = await fetch("/api/admin/support-teams", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function createSupportTeam(input: Record<string, unknown>) {
+  const response = await fetch("/api/admin/support-teams", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return response.json();
+}
 
 export default function SupportTeams() {
   const [data, setData] = useState<any>(["empty"]);
   useEffect(() => {
-    listSupportTeams()
+    getSupportTeams()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -36,11 +52,10 @@ export default function SupportTeams() {
   }
 
   function refreshData() {
-    listSupportTeams()
+    getSupportTeams()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }

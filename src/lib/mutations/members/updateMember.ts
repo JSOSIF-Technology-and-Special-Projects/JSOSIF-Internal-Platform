@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/utils/prisma";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateMemberInput {

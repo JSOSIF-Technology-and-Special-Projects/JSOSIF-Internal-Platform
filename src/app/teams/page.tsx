@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/utils/prisma";
 
+export const dynamic = "force-dynamic";
+
 function slugifyTeamName(name: string) {
   return name
     .toLowerCase()

@@ -2,22 +2,43 @@
 
 import React, { useState, useEffect } from "react";
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
-import { mockApiData } from "@/data/mockApi";
-import createTeam from "@/lib/mutations/teams/createTeam";
-import { listTeams } from "@/lib/queries/teams/listTeams";
 import CreateModel, {
   CreateField,
 } from "@/components/admin-dashboard/CreateModel";
 
+async function getTeams() {
+  const response = await fetch("/api/admin/teams", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function createTeam(input: Record<string, unknown>) {
+  const response = await fetch("/api/admin/teams", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return response.json();
+}
+
+interface TeamRow {
+  teamType?: string;
+}
+
 export default function Teams() {
   const [data, setData] = useState<any>(["empty"]);
   useEffect(() => {
-    listTeams()
+    getTeams()
       .then((res) => {
         if (res.error) return console.error(res.error);
         // Filter to only show Investment teams on the client side for now
         const investmentTeams =
-          res.data?.filter((team: any) => team.teamType === "Investment") || [];
+          res.data?.filter((team: TeamRow) => team.teamType === "Investment") || [];
         setData(investmentTeams);
       })
       .catch((err) => console.error(err));
@@ -53,12 +74,12 @@ export default function Teams() {
   }
 
   function refreshData() {
-    listTeams()
+    getTeams()
       .then((res) => {
         if (res.error) return console.error(res.error);
         // Filter to only show Investment teams on the client side for now
         const investmentTeams =
-          res.data?.filter((team: any) => team.teamType === "Investment") || [];
+          res.data?.filter((team: TeamRow) => team.teamType === "Investment") || [];
         setData(investmentTeams);
       })
       .catch((err) => console.error(err));

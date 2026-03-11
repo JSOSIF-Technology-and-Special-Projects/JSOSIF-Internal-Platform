@@ -2,38 +2,89 @@
 
 import React, { useState, useEffect } from "react";
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
-import { listMembers } from "@/lib/queries/members/listMembers";
-import { listRoles } from "@/lib/queries/roles/listRoles";
-import { listTeams } from "@/lib/queries/teams/listTeams";
 import CreateModel, {
   CreateField,
 } from "@/components/admin-dashboard/CreateModel";
-import createMember, { type CreateMemberInput } from "@/lib/mutations/members/createMember";
+
+interface CreateMemberInput {
+  name: string;
+  description?: string;
+  program: string;
+  year: number;
+  memberSince: string | Date;
+  linkedin?: string;
+  roleId?: string;
+  teamId?: string;
+  email?: string;
+  password?: string;
+  createUser?: boolean;
+}
+
+interface SelectOption {
+  id: string;
+  name: string;
+}
+
+async function getMembers() {
+  const response = await fetch("/api/admin/members", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function getRoles() {
+  const response = await fetch("/api/admin/roles", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function getTeams() {
+  const response = await fetch("/api/admin/teams", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function createMember(input: CreateMemberInput) {
+  const response = await fetch("/api/admin/members", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return response.json();
+}
 
 export default function Members() {
   const [data, setData] = useState<unknown[] | ["empty"]>(["empty"]);
-  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
-  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
+  const [roles, setRoles] = useState<SelectOption[]>([]);
+  const [teams, setTeams] = useState<SelectOption[]>([]);
 
   useEffect(() => {
-    listMembers()
+    getMembers()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
       })
       .catch((err) => console.error(err));
 
-    listRoles()
+    getRoles()
       .then((res) => {
         if (res.error) return console.error(res.error);
-        setRoles((res.data ?? []).map((r) => ({ id: r.id, name: r.name })));
+        setRoles((res.data ?? []).map((r: SelectOption) => ({ id: r.id, name: r.name })));
       })
       .catch((err) => console.error(err));
 
-    listTeams()
+    getTeams()
       .then((res) => {
         if (res.error) return console.error(res.error);
-        setTeams((res.data ?? []).map((t) => ({ id: t.id, name: t.name })));
+        setTeams((res.data ?? []).map((t: SelectOption) => ({ id: t.id, name: t.name })));
       })
       .catch((err) => console.error(err));
   }, []);
@@ -95,7 +146,7 @@ export default function Members() {
   }
 
   function refreshData() {
-    listMembers()
+    getMembers()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
