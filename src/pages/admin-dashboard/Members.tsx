@@ -118,7 +118,7 @@ export default function Members() {
         afterCreate={refreshData}
         modelOpen={createModelOpen}
       />
-      <div className="w-full h-full p-10">
+      <div className="w-full h-full pt-32">
         <h1 className="text-4xl font-medium mb-6">Members</h1>
         <DataTable
           initialData={data}

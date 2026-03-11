@@ -123,8 +123,8 @@ export default function CreateModel({
 					: "opacity-100 pointer-events-auto"
 			}`}
 		>
-			<div className="h-screen w-screen fixed inset-0 bg-black/50 z-40"></div>
-			<div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-fit bg-white rounded-xl border p-6 z-50">
+			<div className="h-screen w-screen fixed inset-0 bg-black/50 z-60"></div>
+			<div className="absolute top-32 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[40vw] max-h-[80vh] overflow-y-auto bg-white rounded-xl border p-6 z-50">
 				<div className="w-full justify-between flex items-center gap-12">
 					<h1 className="text-2xl font-semibold">
 						Create a New {modelName}

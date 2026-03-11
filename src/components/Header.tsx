@@ -3,14 +3,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 import jsosifbanner from "../assets/jsosifbanner.png";
 import MobileMenu from "./MobileMenu";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
 
 interface Path {
   name: string;
@@ -77,29 +74,38 @@ export default function Header() {
 
   // Check user role from active Supabase session.
   useEffect(() => {
-    async function loadSessionAndRole() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
+  // 1. Initial check
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    updateUserState(session?.user ?? null);
+  };
 
-      if (!user) {
-        setIsLoggedIn(false);
-        setPaths(buildPaths(false, teamPaths));
-        return;
-      }
+  // 2. Listen for changes (Login, Logout, Token Refresh)
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    updateUserState(session?.user ?? null);
+  });
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      const adminRole = (profile?.role ?? "").toLowerCase() === "admin";
-      setIsLoggedIn(true);
-      setPaths(buildPaths(adminRole, teamPaths));
+  async function updateUserState(user: any) {
+    if (!user) {
+      setIsLoggedIn(false);
+      setPaths(buildPaths(false, teamPaths));
+      return;
     }
 
-    void loadSessionAndRole();
-  }, [teamPaths]);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const adminRole = (profile?.role ?? "").toLowerCase() === "admin";
+    setIsLoggedIn(true);
+    setPaths(buildPaths(adminRole, teamPaths));
+  }
+
+  checkUser();
+  return () => subscription.unsubscribe();
+}, [teamPaths]);
 
   function buildPaths(
     adminRole: boolean,
@@ -133,6 +139,7 @@ export default function Header() {
           pathname={pathname}
           paths={paths}
           onLogout={handleLogout}
+          isLoggedIn={isLoggedIn}
         />
       </div>
 
