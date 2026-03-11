@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/utils/prisma";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export async function getMember(memberId: string) {
   if (!memberId || !/^[0-9a-fA-F-]{36}$/.test(memberId)) {

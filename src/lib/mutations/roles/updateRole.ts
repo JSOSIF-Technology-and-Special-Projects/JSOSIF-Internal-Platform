@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/utils/prisma";
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@prisma/client";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateRoleInput {
