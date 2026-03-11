@@ -6,8 +6,6 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: [
     "pdf-parse",
-    "@prisma/client",
-    ".prisma/client",
     "yahoo-finance2",
   ],
   webpack: (config, { isServer }) => {
