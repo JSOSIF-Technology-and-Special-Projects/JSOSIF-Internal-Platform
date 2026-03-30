@@ -46,27 +46,6 @@ export default function SideNav() {
 			),
 		},
 		{
-			name: "Investment Divisions",
-			href: "/admin-dashboard/investment-divisions",
-			icon: (
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="32"
-					height="32"
-					viewBox="0 0 24 24"
-				>
-					<path
-						fill="none"
-						stroke="currentColor"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth="2"
-						d="M4 19h16M4 15l4-6l4 2l4-5l4 4"
-					/>
-				</svg>
-			),
-		},
-		{
 			name: "Support Teams",
 			href: "/admin-dashboard/support-teams",
 			icon: (
@@ -138,8 +117,8 @@ export default function SideNav() {
 	];
 
 	return (
-		<div>
-			<div className="flex flex-col bg-white border-r p-10 w-[20rem] gap-6 h-full min-h-screen">
+		<div className="sticky top-16 md:top-20 xl:top-24 self-start">
+			<div className="flex flex-col bg-white border-r p-10 w-[20rem] gap-6 h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] xl:h-[calc(100vh-6rem)] overflow-y-auto">
 				{links.map((link) => (
 					<Link href={link.href} key={link.name}>
 						<div className="flex gap-4 items-center shrink-0">

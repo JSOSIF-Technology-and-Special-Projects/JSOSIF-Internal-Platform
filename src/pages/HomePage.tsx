@@ -6,6 +6,7 @@ interface NavigationCardProps {
   description: string;
   href: string;
   icon: React.ReactNode;
+  openInNewTab?: boolean;
 }
 
 interface AnnouncementProps {
@@ -15,9 +16,22 @@ interface AnnouncementProps {
   author: string;
 }
 
-const NavigationCard: React.FC<NavigationCardProps> = ({ title, description, href, icon }) => (
-  <Link href={href} className="group">
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 border border-gray-200">
+type NavigationSection = NavigationCardProps;
+
+const NavigationCard: React.FC<NavigationCardProps> = ({
+  title,
+  description,
+  href,
+  icon,
+  openInNewTab,
+}) => (
+  <Link
+    href={href}
+    className="group block h-full"
+    target={openInNewTab ? "_blank" : undefined}
+    rel={openInNewTab ? "noopener noreferrer" : undefined}
+  >
+    <div className="h-full bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 border border-gray-200">
       <div className="flex items-center space-x-4">
         <div className="text-[#0E5791] group-hover:text-blue-700 transition-colors">
           {icon}
@@ -26,7 +40,7 @@ const NavigationCard: React.FC<NavigationCardProps> = ({ title, description, hre
           <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#0E5791] transition-colors">
             {title}
           </h3>
-          <p className="text-gray-600 mt-1">{description}</p>
+          <p className="text-gray-600 mt-1 min-h-12">{description}</p>
         </div>
         <div className="text-gray-400 group-hover:text-[#0E5791] transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +74,7 @@ const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, a
 );
 
 export default function Homepage() {
-  const navigationSections = [
+  const navigationSections: NavigationSection[] = [
     {
       title: "Investment Teams",
       description: "Access sector-specific investment teams and research divisions",
@@ -96,6 +110,7 @@ export default function Homepage() {
       title: "Sharepoint",
       description: "Access shared documents and resources quickly",
       href: "https://uwin365.sharepoint.com/sites/jsosif/Shared%20Documents/Forms/AllItems.aspx", 
+      openInNewTab: true,
       icon: (
         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -137,6 +152,7 @@ export default function Homepage() {
               description={section.description}
               href={section.href}
               icon={section.icon}
+              openInNewTab={section.openInNewTab}
             />
           ))}
         </div>

@@ -3,11 +3,6 @@
 import React, { useState, useEffect } from "react";
 
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
-import dynamic from "next/dynamic";
-const SymbolOverviewWidget = dynamic(
-  () => import("@/components/admin-dashboard/SymbolOverviewWidget"), // adjust path
-  { ssr: false }
-);
 import CreateModel, {
 	CreateField,
 } from "@/components/admin-dashboard/CreateModel";
@@ -132,8 +127,6 @@ export default function Portfolios() {
 	function toggleCreateModel() {
 		setCreateModelOpen((prev) => !prev);
 	}
-
-	const tickers = data.map((h: any) => {return h.ticker}).join(",");
 	  
 
 	const pg = <>
@@ -158,11 +151,11 @@ export default function Portfolios() {
 						idKey="id"
 						description="A list of every holding from each team. "
 						onDelete={onDelete}
+						enablePagination={true}
+						rowsPerPage={8}
+						fillEmptyRows={true}
+						allowRowsPerPageInput={true}
 					/>
-
-					<div className="">
-						<SymbolOverviewWidget ticker={tickers}/> 
-					</div>
 			</div>
 		</>;
 

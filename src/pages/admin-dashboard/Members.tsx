@@ -169,7 +169,7 @@ export default function Members() {
         afterCreate={refreshData}
         modelOpen={createModelOpen}
       />
-      <div className="w-full h-full pt-32">
+      <div className="w-full h-full p-10">
         <h1 className="text-4xl font-medium mb-6">Members</h1>
         <DataTable
           initialData={data}
@@ -178,6 +178,9 @@ export default function Members() {
           modelName="Member"
           idKey="id"
           description="A list of all members displayed on the website and their respective information."
+          enablePagination={true}
+          rowsPerPage={8}
+          allowRowsPerPageInput={true}
         />
       </div>
     </>
