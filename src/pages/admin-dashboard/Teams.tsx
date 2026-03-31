@@ -106,6 +106,10 @@ export default function Teams() {
           modelName="Investment Team"
           idKey="id"
           description="A list of all investment teams displayed on the website."
+          enablePagination={true}
+          rowsPerPage={8}
+          fillEmptyRows={true}
+          allowRowsPerPageInput={true}
         />
       </div>
     </>

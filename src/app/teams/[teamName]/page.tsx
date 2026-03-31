@@ -151,11 +151,11 @@ export default async function TeamPage({
       </div>
 
       {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         
         {/* Composition Chart */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 h-full flex flex-col">
             <h2 className="text-xl font-semibold mb-4">Portfolio Composition</h2>
             {portfolioComposition.length > 0 ? (
                <PortfolioCompositionChart data={portfolioComposition} />
@@ -167,7 +167,7 @@ export default async function TeamPage({
 
         {/* TradingView Overview Widget */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 h-full flex flex-col">
             <h2 className="text-xl font-semibold mb-4">Chart & Price</h2>
             {tickersString ? (
               <SymbolOverviewWidget ticker={tickersString} />

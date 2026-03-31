@@ -1,5 +1,5 @@
 "use client";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface CompositionData {
   symbol: string;
@@ -46,30 +46,45 @@ export default function PortfolioCompositionChart({ data = defaultData }: Portfo
   };
 
   return (
-    <div className="h-80 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={validatedData}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={100}
-            paddingAngle={2}
-            dataKey="percentage"
+    <div className="h-full w-full flex flex-col gap-4">
+      <div className="flex-1 min-h-[320px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={validatedData}
+              cx="50%"
+              cy="50%"
+              innerRadius={48}
+              outerRadius={120}
+              paddingAngle={2}
+              dataKey="percentage"
+            >
+              {validatedData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+        {validatedData.map((item) => (
+          <div
+            key={`${item.symbol}-${item.name}`}
+            className="flex items-start gap-2 min-w-0"
+            title={item.name}
           >
-            {validatedData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="bottom" 
-            height={36}
-            iconType="circle"
-          />
-        </PieChart>
-      </ResponsiveContainer>
+            <span
+              className="mt-1 h-3 w-3 rounded-full shrink-0"
+              style={{ backgroundColor: item.color }}
+            />
+            <span className="text-gray-700 leading-5 break-words">
+              {item.name}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
