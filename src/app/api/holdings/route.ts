@@ -1,4 +1,7 @@
 import { prisma } from "../../../utils/prisma";
+import YahooFinance from "yahoo-finance2";
+
+const yahooFinance = new YahooFinance();
 
 export async function GET() {
     try {
@@ -12,16 +15,71 @@ export async function GET() {
           },
         });
         
-        return Response.json(holdings.map((h) => ({
+        const tickers = holdings.map((h) => h.ticker);
+        let exchangeRate = 1;
+        let quotes: any[] = [];
+
+        try {
+            if (tickers.length > 0) {
+                const allTickers = [...new Set([...tickers, "CAD=X"])];
+                quotes = await yahooFinance.quote(allTickers);
+                const cadQuote = quotes.find((q) => q.symbol === "CAD=X");
+                if (cadQuote?.regularMarketPrice) {
+                    exchangeRate = cadQuote.regularMarketPrice;
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch live stock data:", error);
+        }
+
+        const holdingsWithMarketData = holdings.map((h) => {
+            const quote = quotes.find((q) => q.symbol === h.ticker);
+
+            if (!quote) {
+                return {
+                    ...h,
+                    currentPrice: null,
+                    change: null,
+                    changePercent: null,
+                };
+            }
+            
+            const isUSD = quote.currency === "USD";
+            const multiplier = isUSD ? exchangeRate : 1;
+            
+            const rawPrice = quote.regularMarketPrice;
+            const rawChange = quote.regularMarketChange;
+
+            const currentPrice = rawPrice != null ? rawPrice * multiplier : null;
+            const change = rawChange != null ? rawChange * multiplier : null;
+            
+            const changePercent = quote.regularMarketChangePercent;
+
+            return {
+                ...h,
+                currentPrice,
+                change,
+                changePercent,
+            };
+        });
+
+        return Response.json(holdingsWithMarketData.map((h) => ({
           id: h.id, 
           name: h.name,
           team: h.team?.name ?? "",     
           ticker: h.ticker,
           description: h.description,
           amountInShares: h.amountInShares,
-          costCad: `$${h.costCad.toString()}`, 
+          costCad: h.costCad.toNumber(),
           industry: h.industry,
-          investDate: h.investDate.toISOString().slice(0, 10),     
+          investDate: h.investDate.toISOString().slice(0, 10),
+          marketValue: h.currentPrice ? h.currentPrice * h.amountInShares : Number(h.costCad) * h.amountInShares,
+          sector: h.industry || "Unknown",
+          shares: h.amountInShares,
+          averageCost: h.costCad.toNumber(),
+          currentPrice: h.currentPrice,
+          change: h.change,
+          changePercent: h.changePercent,
         })));
 
     } catch (error) {
