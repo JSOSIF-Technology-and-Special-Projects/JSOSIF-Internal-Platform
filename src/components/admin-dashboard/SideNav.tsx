@@ -114,7 +114,7 @@ export default function SideNav() {
 		},
 		{
 			name: "Portfolio Overview",
-			href: "/admin-dashboard/portfolio/overview",
+			href: "/portfolio-overview",
 			icon: (
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

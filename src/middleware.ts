@@ -36,16 +36,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  const isAuthPage = pathname === "/login";
+  const isPublicPreview = pathname.startsWith("/portfolio-overview");
   const isAdminPath = pathname.startsWith("/admin-dashboard");
 
-  if (!user && !isPublicPath) {
+  if (!user && !isAuthPage && !isPublicPreview) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isPublicPath) {
+  if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/homepage";
     return NextResponse.redirect(url);
