@@ -9,6 +9,7 @@ interface MetricCardProps {
   subtitle?: string;
   icon?: React.ReactNode;
   badge?: string;
+  footer?: React.ReactNode;
 }
 
 export default function MetricCard({
@@ -20,6 +21,7 @@ export default function MetricCard({
   subtitle,
   icon,
   badge,
+  footer,
 }: MetricCardProps) {
   const isPositive = (change ?? 0) >= 0;
   const hasChange = change !== undefined || changePercent !== undefined;
@@ -116,8 +118,12 @@ export default function MetricCard({
         </div>
       )}
 
-      {subtitle && !hasChange && (
-        <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
+      {subtitle && (
+        <p className="text-xs text-gray-500 font-medium mt-2">{subtitle}</p>
+      )}
+
+      {footer && (
+        <div className="mt-3 pt-3 border-t border-gray-100">{footer}</div>
       )}
     </div>
   );
