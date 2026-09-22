@@ -117,6 +117,7 @@ export default function Header() {
         href: "/teams",
         childPaths: dynamicTeamPaths,
       },
+      { name: "Portfolio Overview", href: "/portfolio-overview" },
       ...(adminRole ? [{ name: "Website Dashboard", href: "/admin-dashboard" }] : []),
       { name: "Learning Resources", href: "/learningresources" },
     ];

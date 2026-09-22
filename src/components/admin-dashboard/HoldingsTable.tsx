@@ -88,12 +88,16 @@ export default function HoldingsTable({ holdings = defaultHoldings }: HoldingsTa
 
                 {/* Daily Change: Today's market movement */}
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <div className={`text-sm ${holding.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {holding.change >= 0 ? '+' : ''}{formatCurrency(holding.change)}
-                  </div>
-                  <div className={`text-xs ${holding.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {holding.change >= 0 ? '+' : ''}{holding.changePercent.toFixed(2)}%
-                  </div>
+                  {holding.change != null &&
+                    <div className={`text-sm ${holding.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {holding.change >= 0 ? '+' : ''}{formatCurrency(holding.change)}
+                    </div>
+                  }
+                  {holding.changePercent != null &&
+                    <div className={`text-xs ${holding.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {holding.changePercent >= 0 ? '+' : ''}{holding.changePercent.toFixed(2)}%
+                    </div>
+                  }
                 </td>
               </tr>
             );
