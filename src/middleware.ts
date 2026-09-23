@@ -37,7 +37,8 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage = pathname === "/login";
-  const isPublicPreview = pathname.startsWith("/portfolio-overview");
+  const isPublicPreview =
+    pathname.startsWith("/portfolio-overview") || pathname.startsWith("/simulator");
   const isAdminPath = pathname.startsWith("/admin-dashboard");
 
   if (!user && !isAuthPage && !isPublicPreview) {
