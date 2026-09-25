@@ -121,9 +121,21 @@ export default async function TeamPage({
       {/* Header Section */}
       <div className="mb-8 relative">
         <div className="relative h-48 md:h-64 rounded-lg overflow-hidden mb-6 bg-[#0E5791]">
-          <div className="absolute inset-0 bg-black bg-opacity-20" />
-          <div className="absolute bottom-6 left-6 text-white">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{teamNameLabel}</h1>
+          <div className="absolute bottom-6 left-6 right-6 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-1">{teamNameLabel}</h1>
+              <p className="text-white/80 text-xs sm:text-sm">Investment Research Division</p>
+            </div>
+
+            <Link
+              href={`/simulator?team=${encodeURIComponent(teamNameLabel)}`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#0E5791] hover:bg-blue-50 font-bold text-xs sm:text-sm shadow-md transition-all self-start sm:self-auto active:scale-95"
+            >
+              <svg className="w-4 h-4 text-[#0E5791]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>Simulate Trade for {teamNameLabel}</span>
+            </Link>
           </div>
         </div>
         <p className="text-gray-600 max-w-4xl">
