@@ -9,6 +9,7 @@ import PerformanceMetrics from "@/components/admin-dashboard/PerformanceMetrics"
 import { prisma } from "@/utils/prisma";
 
 const yahooFinance = new YahooFinance();
+export const dynamic = "force-dynamic";
 // Cache this page for 60 seconds so you don't spam the Yahoo Finance API on every refresh
 export const revalidate = 60;
 

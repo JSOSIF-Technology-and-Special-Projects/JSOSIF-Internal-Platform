@@ -1,21 +1,37 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
-import { mockApiData } from "@/data/mockApi";
 import CreateModel, {
   CreateField,
 } from "@/components/admin-dashboard/CreateModel";
-import { listAlumni } from "@/lib/queries/alumni/listAlumni";
-import createAlumni from "@/lib/mutations/alumni/createAlumni";
+
+async function getAlumni() {
+  const response = await fetch("/api/admin/alumni", {
+    cache: "no-store",
+  });
+
+  return response.json();
+}
+
+async function createAlumni(input: Record<string, unknown>) {
+  const response = await fetch("/api/admin/alumni", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  return response.json();
+}
 
 export default function Alumni() {
   const [data, setData] = useState<any>(["empty"]);
   useEffect(() => {
-    listAlumni()
+    getAlumni()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -62,11 +78,10 @@ export default function Alumni() {
   }
 
   function refreshData() {
-    listAlumni()
+    getAlumni()
       .then((res) => {
         if (res.error) return console.error(res.error);
         setData(res.data);
-        console.log(res);
       })
       .catch((err) => console.error(err));
   }

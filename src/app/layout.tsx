@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 
-
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-	title: "JSOSIF Platform | Internal Fund Dashboard",
-	description: "Odette School of Business - John Simpson Odette Student Investment Fund Internal Dashboard",
+	title: "JSOSIF Internal",
+	description: "Internal tools for JSOSIF",
 };
 
 export default function RootLayout({

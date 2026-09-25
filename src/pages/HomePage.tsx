@@ -7,6 +7,7 @@ interface NavigationCardProps {
   href: string;
   badge?: string;
   icon: React.ReactNode;
+  openInNewTab?: boolean;
 }
 
 interface AnnouncementProps {
@@ -79,7 +80,7 @@ const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, a
 );
 
 export default function Homepage() {
-  const navigationSections = [
+  const navigationSections: NavigationSection[] = [
     {
       title: "Portfolio Overview",
       description: "Real-time consolidated AUM, S&P 500 benchmark analytics, Alpha progression, and core holdings.",
