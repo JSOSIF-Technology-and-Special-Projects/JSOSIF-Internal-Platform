@@ -175,8 +175,12 @@ export default function BenchmarkComparison({
   return (
     <div className="space-y-6">
       {/* 1. Whole Portfolio vs S&P 500 Benchmark Card */}
-      <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 shadow-xl border border-slate-800">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
+      <div className="rounded-3xl bg-slate-900 border border-slate-800 text-white p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        {/* Subtle decorative radial gradients */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
@@ -186,7 +190,7 @@ export default function BenchmarkComparison({
                 S&P 500 Index (SPY) Trailing Performance
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white">
               Portfolio vs. S&P 500 Benchmark (
               {selectedTimeframe === "1M"
                 ? "1 Month"
@@ -197,34 +201,34 @@ export default function BenchmarkComparison({
                 : "All Time"}
               )
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
               Compare JSOSIF's trailing performance against the S&P 500 index over 1-month, 3-month, 6-month, or inception horizons.
             </p>
           </div>
 
           {/* Timeframe Selector Buttons */}
-          <div className="flex flex-wrap items-center gap-2 self-start lg:self-center">
-            <span className="text-xs text-slate-400 font-medium mr-1 hidden sm:inline">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-800/80 border border-slate-700/60 self-start lg:self-center">
+            <span className="text-xs text-slate-400 font-semibold px-2 hidden sm:inline">
               Horizon:
             </span>
             {(["1M", "3M", "6M", "ALL"] as Timeframe[]).map((tf) => {
               const label =
                 tf === "1M"
-                  ? "1 Month"
+                  ? "1M"
                   : tf === "3M"
-                  ? "3 Months"
+                  ? "3M"
                   : tf === "6M"
-                  ? "6 Months"
-                  : "All Time";
+                  ? "6M"
+                  : "Total";
               const isSelected = selectedTimeframe === tf;
               return (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 active:scale-95 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 ${
                     isSelected
-                      ? "bg-gradient-to-r from-[#0E5791] to-[#2A8CD6] text-white shadow-lg shadow-blue-500/25 ring-2 ring-blue-400/50"
-                      : "bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/25"
+                      : "text-slate-300 hover:text-white hover:bg-slate-700/50"
                   }`}
                 >
                   {label}
@@ -369,41 +373,41 @@ export default function BenchmarkComparison({
       </div>
 
       {/* 2. Sectors vs Matching Industry Sector ETFs Section */}
-      <div className="rounded-3xl bg-white border border-gray-100 p-6 sm:p-8 shadow-sm">
+      <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Sector vs. Industry ETF Benchmarks ({selectedTimeframe})
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0E5791] border border-blue-100">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#0E5791] border border-blue-100">
                 {selectedTimeframe} Horizon
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Evaluating each JSOSIF division’s trailing {selectedTimeframe} return against its matching sector ETF
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* View Mode Toggle */}
-            <div className="inline-flex p-1 rounded-xl bg-gray-100 text-xs font-semibold text-gray-600">
+            <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/60 text-xs font-semibold text-slate-600">
               <button
                 onClick={() => setViewMode("cards")}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3 py-1.5 rounded-xl transition-all ${
                   viewMode === "cards"
-                    ? "bg-white text-[#0E5791] shadow-sm font-bold"
-                    : "hover:text-gray-900"
+                    ? "bg-white text-[#0E5791] shadow-xs font-bold"
+                    : "hover:text-slate-900"
                 }`}
               >
                 Cards View
               </button>
               <button
                 onClick={() => setViewMode("table")}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
+                className={`px-3 py-1.5 rounded-xl transition-all ${
                   viewMode === "table"
-                    ? "bg-white text-[#0E5791] shadow-sm font-bold"
-                    : "hover:text-gray-900"
+                    ? "bg-white text-[#0E5791] shadow-xs font-bold"
+                    : "hover:text-slate-900"
                 }`}
               >
                 Table View
@@ -414,7 +418,7 @@ export default function BenchmarkComparison({
 
         {viewMode === "cards" ? (
           /* Cards Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {currentData.sectors.map((item: SectorComparisonItem) => {
               const divAum = divisionValueMap[item.team] || 0;
               const weightPct = totalMarketValue > 0 ? (divAum / totalMarketValue) * 100 : 0;

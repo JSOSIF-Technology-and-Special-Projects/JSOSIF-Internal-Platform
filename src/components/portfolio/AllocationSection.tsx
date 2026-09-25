@@ -111,27 +111,27 @@ export default function AllocationSection({
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
+    <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
       {/* Header and Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Portfolio Allocation</h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Portfolio Allocation</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
             Asset distribution and capital concentration across divisions
           </p>
         </div>
 
         {/* Tab switch pills */}
-        <div className="inline-flex p-1 rounded-xl bg-gray-100 text-xs font-semibold text-gray-600">
+        <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/60 text-xs font-semibold text-slate-600">
           <button
             onClick={() => {
               setActiveTab("team");
               setActiveIndex(null);
             }}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl transition-all ${
               activeTab === "team"
-                ? "bg-white text-[#0E5791] shadow-sm font-bold"
-                : "hover:text-gray-900"
+                ? "bg-white text-[#0E5791] shadow-xs font-bold"
+                : "hover:text-slate-900"
             }`}
           >
             By Investment Division
@@ -141,10 +141,10 @@ export default function AllocationSection({
               setActiveTab("sector");
               setActiveIndex(null);
             }}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
+            className={`px-3 py-1.5 rounded-xl transition-all ${
               activeTab === "sector"
-                ? "bg-white text-[#0E5791] shadow-sm font-bold"
-                : "hover:text-gray-900"
+                ? "bg-white text-[#0E5791] shadow-xs font-bold"
+                : "hover:text-slate-900"
             }`}
           >
             By Sector / Industry

@@ -159,23 +159,23 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+    <div className="rounded-3xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
       {/* Table Top Toolbar */}
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-6 sm:p-8 border-b border-slate-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Fund Holdings Directory</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Fund Holdings Directory</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
               Comprehensive directory of equities and fixed-income corporate debt securities
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span className="font-semibold text-gray-900">{filteredHoldings.length}</span> of{" "}
+          <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-200/60 self-start md:self-auto">
+            <span className="font-bold text-slate-900">{filteredHoldings.length}</span> of{" "}
             <span>{holdings.length} positions</span>
-            <span className="text-gray-300">•</span>
+            <span className="text-slate-300">•</span>
             <span>
-              Subtotal: <strong className="text-gray-900">{formatCurrency(visibleTotalValue)}</strong>
+              Subtotal: <strong className="text-slate-900 font-bold">{formatCurrency(visibleTotalValue)}</strong>
             </span>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-5">
           {/* Search box */}
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -194,7 +194,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
               placeholder="Search ticker, bond, name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0E5791]/20 focus:border-[#0E5791] transition-all"
+              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             />
           </div>
 
@@ -203,7 +203,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
             <select
               value={selectedAssetType}
               onChange={(e) => setSelectedAssetType(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0E5791]/20 focus:border-[#0E5791] transition-all"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
             >
               <option value="all">All Asset Types</option>
               <option value="Equity">Equities Only</option>
@@ -216,7 +216,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0E5791]/20 focus:border-[#0E5791] transition-all"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
             >
               <option value="all">All Divisions ({teams.length})</option>
               {teams.map((t) => (
@@ -232,7 +232,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
             <select
               value={selectedSector}
               onChange={(e) => setSelectedSector(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0E5791]/20 focus:border-[#0E5791] transition-all"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
             >
               <option value="all">All Sectors ({sectors.length})</option>
               {sectors.map((s) => (
@@ -248,7 +248,7 @@ export default function FundHoldingsTable({ holdings }: FundHoldingsTableProps) 
             <select
               value={selectedPerformance}
               onChange={(e) => setSelectedPerformance(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0E5791]/20 focus:border-[#0E5791] transition-all"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-slate-700"
             >
               <option value="all">All Return Profiles</option>
               <option value="gainers">Positive Return Only</option>

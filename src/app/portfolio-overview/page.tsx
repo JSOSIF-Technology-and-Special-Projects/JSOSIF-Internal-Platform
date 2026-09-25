@@ -227,34 +227,34 @@ export default function PortfolioOverviewPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#F8FAFC] p-4 sm:p-6 lg:p-8 pt-32 sm:pt-36">
-        <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
+      <main className="min-h-screen bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
           {/* Skeleton Hero */}
-          <div className="h-64 rounded-3xl bg-gray-200" />
+          <div className="h-56 rounded-3xl bg-slate-200/70" />
 
           {/* Skeleton Toolbar */}
-          <div className="h-16 rounded-2xl bg-gray-200" />
+          <div className="h-16 rounded-3xl bg-slate-200/70" />
 
           {/* Skeleton KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 rounded-2xl bg-gray-200" />
+              <div key={i} className="h-36 rounded-3xl bg-slate-200/70" />
             ))}
           </div>
 
           {/* Skeleton Benchmarks */}
-          <div className="h-80 rounded-2xl bg-gray-200" />
+          <div className="h-80 rounded-3xl bg-slate-200/70" />
 
           {/* Skeleton Allocation */}
-          <div className="h-96 rounded-2xl bg-gray-200" />
+          <div className="h-96 rounded-3xl bg-slate-200/70" />
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] text-gray-900 p-4 sm:p-6 lg:p-8 pt-28 sm:pt-36">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Modern Hero Section */}
         <PortfolioHero
           lastUpdated={lastUpdated}
@@ -266,16 +266,16 @@ export default function PortfolioOverviewPage() {
         />
 
         {/* Interactive Horizon Selector Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-white border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0E5791] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0E5791] flex items-center justify-center shrink-0 border border-blue-100/60">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-bold text-sm text-gray-900">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-bold text-sm text-slate-900">
                   Performance Evaluation Horizon
                 </h2>
                 <span
@@ -290,14 +290,14 @@ export default function PortfolioOverviewPage() {
                     : `${currentBenchmarkData.alpha.toFixed(2)}% α vs S&P 500`}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Evaluating JSOSIF portfolio return vs. S&P 500 index (SPY) over {selectedHorizon === "1M" ? "the past 1 month" : selectedHorizon === "3M" ? "the past 3 months" : selectedHorizon === "6M" ? "the past 6 months" : "total fund inception"}.
               </p>
             </div>
           </div>
 
           {/* Timeframe pill buttons */}
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-gray-100 self-start sm:self-center">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/60 self-start sm:self-center">
             {[
               { key: "1M", label: "1 Month (1M)", short: "1M" },
               { key: "3M", label: "3 Months (3M)", short: "3M" },
@@ -309,10 +309,10 @@ export default function PortfolioOverviewPage() {
                 <button
                   key={item.key}
                   onClick={() => setSelectedHorizon(item.key as Timeframe)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 ${
                     isSelected
-                      ? "bg-gradient-to-r from-[#0E5791] to-[#2A8CD6] text-white shadow-md shadow-blue-500/20"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/70"
+                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/20"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                   }`}
                 >
                   <span className="hidden sm:inline">{item.label}</span>

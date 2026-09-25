@@ -52,10 +52,10 @@ function SimulatorContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] text-gray-900 p-4 sm:p-6 lg:p-8 pt-28 sm:pt-36">
+    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Navigation & Context Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-gray-100 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-3">
             <Link
               href="/portfolio-overview"
