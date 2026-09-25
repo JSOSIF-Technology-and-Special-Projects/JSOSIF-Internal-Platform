@@ -80,7 +80,7 @@ const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, a
 );
 
 export default function Homepage() {
-  const navigationSections: NavigationSection[] = [
+  const navigationSections: NavigationCardProps[] = [
     {
       title: "Portfolio Overview",
       description: "Real-time consolidated AUM, S&P 500 benchmark analytics, Alpha progression, and core holdings.",
