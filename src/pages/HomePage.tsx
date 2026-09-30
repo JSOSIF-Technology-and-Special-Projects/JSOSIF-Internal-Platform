@@ -5,6 +5,7 @@ interface NavigationCardProps {
   title: string;
   description: string;
   href: string;
+  badge?: string;
   icon: React.ReactNode;
   openInNewTab?: boolean;
 }
@@ -14,59 +15,64 @@ interface AnnouncementProps {
   message: string;
   date: string;
   author: string;
+  tag?: string;
 }
 
-type NavigationSection = NavigationCardProps;
+const NavigationCard: React.FC<NavigationCardProps> = ({ title, description, href, badge, icon }) => (
+  <Link href={href} className="group block h-full">
+    <div className="h-full rounded-3xl bg-white border border-slate-200/80 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] hover:shadow-lg hover:border-slate-300/90 transition-all duration-300 flex flex-col justify-between relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0E5791] via-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      <div>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="p-3 rounded-2xl bg-blue-50 text-[#0E5791] group-hover:bg-[#0E5791] group-hover:text-white transition-all duration-300 shadow-xs">
+            {icon}
+          </div>
+          {badge && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-[#0E5791] border border-blue-100">
+              {badge}
+            </span>
+          )}
+        </div>
 
-const NavigationCard: React.FC<NavigationCardProps> = ({
-  title,
-  description,
-  href,
-  icon,
-  openInNewTab,
-}) => (
-  <Link
-    href={href}
-    className="group block h-full"
-    target={openInNewTab ? "_blank" : undefined}
-    rel={openInNewTab ? "noopener noreferrer" : undefined}
-  >
-    <div className="h-full bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 border border-gray-200">
-      <div className="flex items-center space-x-4">
-        <div className="text-[#0E5791] group-hover:text-blue-700 transition-colors">
-          {icon}
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#0E5791] transition-colors">
-            {title}
-          </h3>
-          <p className="text-gray-600 mt-1 min-h-12">{description}</p>
-        </div>
-        <div className="text-gray-400 group-hover:text-[#0E5791] transition-colors">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
+        <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#0E5791] transition-colors">
+          {title}
+        </h3>
+        <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
+          {description}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-xs font-bold text-[#0E5791] mt-6 group-hover:gap-2.5 transition-all">
+        <span>Open Module</span>
+        <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+        </svg>
       </div>
     </div>
   </Link>
 );
 
-const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, author }) => (
-  <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-    <div className="flex items-start justify-between">
+const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, author, tag = "Notice" }) => (
+  <div className="rounded-2xl border border-slate-200/70 bg-slate-50/50 p-4 sm:p-5 hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200">
+    <div className="flex items-start justify-between gap-3">
       <div className="flex-1">
-        <h4 className="font-semibold text-gray-900">{title}</h4>
-        <p className="text-gray-600 mt-1 text-sm">{message}</p>
-        <div className="flex items-center space-x-2 mt-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-100/70 text-[#0E5791]">
+            {tag}
+          </span>
+          <h4 className="font-bold text-sm text-slate-900">{title}</h4>
+        </div>
+        <p className="text-slate-600 text-xs leading-relaxed">{message}</p>
+        <div className="flex items-center gap-2 mt-3 text-[11px] text-slate-400 font-medium">
           <span>By {author}</span>
           <span>•</span>
           <span>{date}</span>
         </div>
       </div>
-      <div className="ml-4">
-        <svg className="w-5 h-5 text-[#0E5791]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+      <div className="p-2 rounded-xl bg-blue-50 text-[#0E5791] shrink-0">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
       </div>
     </div>
@@ -74,56 +80,71 @@ const AnnouncementItem: React.FC<AnnouncementProps> = ({ title, message, date, a
 );
 
 export default function Homepage() {
-  const navigationSections: NavigationSection[] = [
-    {
-      title: "Investment Teams",
-      description: "Access sector-specific investment teams and research divisions",
-      href: "/teams",
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      )
-    },
+  const navigationSections: NavigationCardProps[] = [
     {
       title: "Portfolio Overview",
-      description: "View the entire fund's portfolio and performance.",
+      description: "Real-time consolidated AUM, S&P 500 benchmark analytics, Alpha progression, and core holdings.",
       href: "/portfolio-overview",
+      badge: "Core Fund",
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-      )
-    },
-    {
-      title: "Website Dashboard",
-      description: "Administrative tools and platform management",
-      href: "/admin-dashboard",
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       )
     },
     {
-      title: "PDF Parser",
-      description: "PDF parser for bank statements",
-      href: "/pdf-parser", // Placeholder for future link
+      title: "Investment Teams",
+      description: "Sector-specific investment research divisions, assigned coverage, and division holdings.",
+      href: "/teams",
+      badge: "Divisions",
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-
-      ) 
+      )
     },
     {
-      title: "Sharepoint",
-      description: "Access shared documents and resources quickly",
-      href: "https://uwin365.sharepoint.com/sites/jsosif/Shared%20Documents/Forms/AllItems.aspx", 
-      openInNewTab: true,
+      title: "Trade Simulator",
+      description: "Model prospective trades, rebalancing impact, and sector allocation shifts against live quotes.",
+      href: "/simulator",
+      badge: "Interactive",
       icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      )
+    },
+    {
+      title: "Website Dashboard",
+      description: "Administrative tools, user management, and portal configuration.",
+      href: "/admin-dashboard",
+      badge: "Admin",
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )
+    },
+    {
+      title: "PDF Parser",
+      description: "Automated statement ingestion and trade execution reconciliation parser.",
+      href: "/pdf-parser",
+      badge: "Utility",
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      )
+    },
+    {
+      title: "SharePoint Vault",
+      description: "Access official investment pitches, financial models, and research reports.",
+      href: "https://uwin365.sharepoint.com/sites/jsosif/Shared%20Documents/Forms/AllItems.aspx",
+      badge: "External",
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
       )
     }
@@ -131,48 +152,98 @@ export default function Homepage() {
 
   const announcements: AnnouncementProps[] = [
     {
-      title: "First Usage!",
-      message: "Any bugs, errors, or suggestions? Email hadrel@uwindsor.ca.",
-      date: "March 4th 2026",
-      author: "Landon Hadre"
+      title: "Platform Refresh",
+      message: "Internal platform upgraded with real-time portfolio analytics, live Yahoo Finance quotes, and trade simulation.",
+      date: "March 2026",
+      author: "Platform Engineering",
+      tag: "Release"
+    },
+    {
+      title: "Support & Suggestions",
+      message: "Any bugs, data questions, or suggestions? Reach out directly to hadrel@uwindsor.ca.",
+      date: "March 4th, 2026",
+      author: "Landon Hadre",
+      tag: "Support"
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-[#0E5791] text-white py-8 pt-[9rem]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Welcome to the Homepage!</h1>
-              <p className="text-blue-100 mt-2">
-                This is the homepage for the JSOSIF website.
-              </p>
+    <div className="min-h-screen bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Executive Hero Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-[#0B2A4A] to-slate-900 text-white p-8 sm:p-10 shadow-xl border border-slate-800/80">
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-md border border-white/15 text-white">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                JSOSIF Internal Operating Platform
+              </span>
+              <span className="text-xs text-slate-300 bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-xs">
+                Odette School of Business
+              </span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white mb-3">
+              John Simpson Odette Student Investment Fund
+            </h1>
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              Internal research, portfolio management, trade execution simulation, and performance benchmarking for JSOSIF analysts and portfolio managers.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 mt-6">
+              <Link
+                href="/portfolio-overview"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md shadow-blue-500/20 transition-all active:scale-95"
+              >
+                <span>View Live Portfolio</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+              <Link
+                href="/teams"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs backdrop-blur-md border border-white/15 transition-all active:scale-95"
+              >
+                <span>Explore Research Teams</span>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {navigationSections.map((section, index) => (
-            <NavigationCard
-              key={index}
-              title={section.title}
-              description={section.description}
-              href={section.href}
-              icon={section.icon}
-              openInNewTab={section.openInNewTab}
-            />
-          ))}
+        {/* Bento Grid Navigation */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Platform Modules</h2>
+            <span className="text-xs text-slate-500 font-medium">Select a tool or division</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {navigationSections.map((section, index) => (
+              <NavigationCard
+                key={index}
+                title={section.title}
+                description={section.description}
+                href={section.href}
+                badge={section.badge}
+                icon={section.icon}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Announcements & Updates Feed */}
+        <div className="rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Important Updates</h2>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Platform Updates & Notices</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Fund announcements, operational changes, and system notes</p>
+            </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {announcements.map((announcement, index) => (
               <AnnouncementItem
                 key={index}
@@ -180,6 +251,7 @@ export default function Homepage() {
                 message={announcement.message}
                 date={announcement.date}
                 author={announcement.author}
+                tag={announcement.tag}
               />
             ))}
           </div>
