@@ -49,7 +49,10 @@ export default function AllocationSection({
 
   const groupedMap = holdings.reduce<Record<string, { value: number; count: number }>>(
     (acc, h) => {
-      const key = h[groupingKey] || "Other";
+      let key = h[groupingKey] || "Other";
+      if (h.ticker === "CASH" || h.assetType === "Cash" || key === "Executives") {
+        key = "Cash";
+      }
       if (!acc[key]) {
         acc[key] = { value: 0, count: 0 };
       }
@@ -69,7 +72,7 @@ export default function AllocationSection({
         value: Math.round(data.value),
         count: data.count,
         percentage,
-        color: PALETTE[index % PALETTE.length],
+        color: name === "Cash" ? "#64748B" : PALETTE[index % PALETTE.length],
       };
     })
     .sort((a, b) => b.value - a.value);
