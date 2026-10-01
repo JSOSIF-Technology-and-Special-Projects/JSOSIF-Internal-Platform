@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface CreateAlumniInput {
@@ -45,51 +44,48 @@ export default async function createAlumni(input: CreateAlumniInput) {
   }
 
   try {
-    const alumniData: Prisma.AlumniCreateInput = {
-      name: input.name,
-      description: input.description,
-      companyName: input.companyName,
-      industry: input.industry,
-      degree: input.degree,
-      yearsOnFund: input.yearsOnFund,
-      ...(input.linkedin && { linkedin: input.linkedin }),
-      ...(input.formerMemberId && {
-        formerMember: {
-          connect: { id: input.formerMemberId },
-        },
-      }),
-    };
+    const id = generateId();
+    const now = new Date().toISOString();
 
-    const alumni = await prisma.alumni.create({
-      data: alumniData,
-      include: {
-        formerMember: true,
-      },
-    });
+    const { data: alumni, error } = await supabaseDb
+      .from("alumni")
+      .insert({
+        id,
+        name: input.name,
+        description: input.description || null,
+        company_name: input.companyName,
+        industry: input.industry,
+        degree: input.degree,
+        years_on_fund: input.yearsOnFund,
+        linkedin: input.linkedin || null,
+        former_member_id: input.formerMemberId || null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select("*, formerMember:members!alumni_former_member_id_fkey(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedAlumni = {
+      ...alumni,
+      companyName: alumni.company_name,
+      yearsOnFund: alumni.years_on_fund,
+      formerMemberId: alumni.former_member_id,
+      createdAt: alumni.created_at,
+      updatedAt: alumni.updated_at,
+      formerMember: alumni.formerMember || null,
+    };
 
     return {
       message: "Alumni created successfully",
-      data: alumni,
+      data: mappedAlumni,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "An alumni with this LinkedIn URL already exists",
-        };
-      }
-      if (error.code === "P2025") {
-        return {
-          message: "Database error",
-          error: "Referenced former member not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import type { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface CreateAnnouncementInput {
@@ -27,25 +26,43 @@ export default async function createAnnouncement(
   }
 
   try {
-    const announcement = await prisma.announcement.create({
-      data: {
+    const id = generateId();
+    const now = new Date().toISOString();
+    const publishedAtStr = input.publishedAt
+      ? new Date(input.publishedAt).toISOString()
+      : now;
+
+    const { data: announcement, error } = await supabaseDb
+      .from("announcements")
+      .insert({
+        id,
         title: input.title,
         information: input.information,
-        publishedAt: input.publishedAt
-          ? new Date(input.publishedAt)
-          : new Date(),
-      },
-    });
+        published_at: publishedAtStr,
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const mapped = {
+      ...announcement,
+      publishedAt: announcement.published_at,
+      createdAt: announcement.created_at,
+      updatedAt: announcement.updated_at,
+    };
 
     return {
       message: "Announcement created successfully",
-      data: announcement,
+      data: mapped,
     };
   } catch (error) {
     console.error("Database error:", error);
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

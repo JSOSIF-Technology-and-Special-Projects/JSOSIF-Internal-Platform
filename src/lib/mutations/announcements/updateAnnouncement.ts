@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateAnnouncementInput {
@@ -37,38 +36,41 @@ export default async function updateAnnouncement({
   }
 
   try {
-    const announcement = await prisma.announcement.update({
-      where: {
-        id: announcementId,
-      },
-      data: {
-        ...(input.title !== undefined && { title: input.title }),
-        ...(input.information !== undefined && {
-          information: input.information,
-        }),
-        ...(input.publishedAt !== undefined && {
-          publishedAt: new Date(input.publishedAt),
-        }),
-      },
-    });
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (input.title !== undefined) updateData.title = input.title;
+    if (input.information !== undefined) updateData.information = input.information;
+    if (input.publishedAt !== undefined) {
+      updateData.published_at = new Date(input.publishedAt).toISOString();
+    }
+
+    const { data: announcement, error } = await supabaseDb
+      .from("announcements")
+      .update(updateData)
+      .eq("id", announcementId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const mapped = {
+      ...announcement,
+      publishedAt: announcement.published_at,
+      createdAt: announcement.created_at,
+      updatedAt: announcement.updated_at,
+    };
 
     return {
       message: "Announcement updated successfully",
-      data: announcement,
+      data: mapped,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Announcement not found",
-          error: "Announcement not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

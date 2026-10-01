@@ -1,6 +1,6 @@
 "use server";
 import { createClient } from "@supabase/supabase-js";
-import { prisma } from "@/utils/prisma";
+import { supabaseDb } from "@/utils/supabaseDb";
 
 /**
  * Creates a Supabase auth user and profile
@@ -64,13 +64,9 @@ export async function createAuthUser(
           }
 
           // Update profile if it exists, or create it
-          await prisma.profiles.upsert({
-            where: { id: existingUser.id },
-            update: { role: roleName },
-            create: {
-              id: existingUser.id,
-              role: roleName,
-            },
+          await supabaseDb.from("profiles").upsert({
+            id: existingUser.id,
+            role: roleName,
           });
           return { userId: existingUser.id, error: null };
         }
@@ -89,13 +85,9 @@ export async function createAuthUser(
     const userId = userData.user.id;
 
     // Create or update profile
-    await prisma.profiles.upsert({
-      where: { id: userId },
-      update: { role: roleName },
-      create: {
-        id: userId,
-        role: roleName,
-      },
+    await supabaseDb.from("profiles").upsert({
+      id: userId,
+      role: roleName,
     });
 
     return { userId, error: null };

@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateMemberInput {
@@ -50,71 +49,51 @@ export default async function updateMember({
   }
 
   try {
-    const updateData: Prisma.MemberUpdateInput = {
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.description !== undefined && {
-        description: input.description,
-      }),
-      ...(input.program !== undefined && { program: input.program }),
-      ...(input.year !== undefined && { year: input.year }),
-      ...(input.memberSince !== undefined && {
-        memberSince: new Date(input.memberSince),
-      }),
-      ...(input.linkedin !== undefined && { linkedin: input.linkedin }),
-      ...(input.roleId !== undefined && {
-        role: input.roleId
-          ? {
-              connect: { id: input.roleId },
-            }
-          : {
-              disconnect: true,
-            },
-      }),
-      ...(input.teamId !== undefined && {
-        team: input.teamId
-          ? {
-              connect: { id: input.teamId },
-            }
-          : {
-              disconnect: true,
-            },
-      }),
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     };
 
-    const member = await prisma.member.update({
-      where: {
-        id: memberId,
-      },
-      data: updateData,
-      include: {
-        role: true,
-        team: true,
-      },
-    });
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+    if (input.program !== undefined) updateData.program = input.program;
+    if (input.year !== undefined) updateData.year = input.year;
+    if (input.memberSince !== undefined) {
+      updateData.member_since = new Date(input.memberSince).toISOString().slice(0, 10);
+    }
+    if (input.linkedin !== undefined) updateData.linkedin = input.linkedin;
+    if (input.roleId !== undefined) updateData.role_id = input.roleId || null;
+    if (input.teamId !== undefined) updateData.team_id = input.teamId || null;
+
+    const { data: member, error } = await supabaseDb
+      .from("members")
+      .update(updateData)
+      .eq("id", memberId)
+      .select("*, role:roles(*), team:teams(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedMember = {
+      ...member,
+      memberSince: member.member_since,
+      userId: member.user_id,
+      roleId: member.role_id,
+      teamId: member.team_id,
+      createdAt: member.created_at,
+      updatedAt: member.updated_at,
+      role: member.role || null,
+      team: member.team || null,
+    };
 
     return {
       message: "Member updated successfully",
-      data: member,
+      data: mappedMember,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Member not found",
-          error: "Member not found",
-        };
-      }
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A member with this LinkedIn URL already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

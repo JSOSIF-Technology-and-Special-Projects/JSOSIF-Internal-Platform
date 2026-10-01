@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface CreateSupportTeamInput {
@@ -24,37 +23,39 @@ export default async function createSupportTeam(input: CreateSupportTeamInput) {
   }
 
   try {
-    const teamData: Prisma.TeamCreateInput = {
-      name: input.name,
-      description: input.description,
-      teamType: "Support",
-    };
+    const id = generateId();
+    const now = new Date().toISOString();
+    const { data: supportTeam, error } = await supabaseDb
+      .from("teams")
+      .insert({
+        id,
+        name: input.name,
+        description: input.description || null,
+        team_type: "Support",
+        created_at: now,
+        updated_at: now,
+      })
+      .select("*, members(*), holdings(*)")
+      .single();
 
-    const supportTeam = await prisma.team.create({
-      data: teamData,
-      include: {
-        members: true,
-        holdings: true,
-      },
-    });
+    if (error) throw error;
 
     return {
       message: "Support team created successfully",
-      data: supportTeam,
+      data: {
+        ...supportTeam,
+        teamType: supportTeam.team_type,
+        createdAt: supportTeam.created_at,
+        updatedAt: supportTeam.updated_at,
+        members: supportTeam.members || [],
+        holdings: supportTeam.holdings || [],
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A team with this name already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

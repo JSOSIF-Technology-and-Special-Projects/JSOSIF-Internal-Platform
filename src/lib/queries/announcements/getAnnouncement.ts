@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import type { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 
 export async function getAnnouncement(announcementId: string) {
   if (!announcementId || !/^[0-9a-fA-F-]{36}$/.test(announcementId)) {
@@ -11,11 +10,13 @@ export async function getAnnouncement(announcementId: string) {
   }
 
   try {
-    const announcement = await prisma.announcement.findUnique({
-      where: {
-        id: announcementId,
-      },
-    });
+    const { data: announcement, error } = await supabaseDb
+      .from("announcements")
+      .select("*")
+      .eq("id", announcementId)
+      .maybeSingle();
+
+    if (error) throw error;
 
     if (!announcement) {
       return {
@@ -24,15 +25,22 @@ export async function getAnnouncement(announcementId: string) {
       };
     }
 
+    const mappedAnnouncement = {
+      ...announcement,
+      publishedAt: (announcement as any).published_at,
+      createdAt: (announcement as any).created_at,
+      updatedAt: (announcement as any).updated_at,
+    };
+
     return {
       message: "Announcement retrieved successfully",
-      data: announcement,
+      data: mappedAnnouncement,
     };
   } catch (error) {
     console.error("Database error:", error);
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

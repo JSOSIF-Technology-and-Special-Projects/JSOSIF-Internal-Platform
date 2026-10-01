@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import type { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 
 export async function getHolding(holdingId: string) {
   if (!holdingId || !/^[0-9a-fA-F-]{36}$/.test(holdingId)) {
@@ -11,20 +10,31 @@ export async function getHolding(holdingId: string) {
   }
 
   try {
-    const holding = await prisma.holding.findUnique({
-      where: {
-        id: holdingId,
-      },
-      include: {
-        team: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
-        },
-      },
-    });
+    const { data: holding, error } = await supabaseDb
+      .from("holdings")
+      .select(`
+        id,
+        team_id,
+        ticker,
+        name,
+        description,
+        invest_date,
+        divest_date,
+        amount_in_shares,
+        costCad,
+        industry,
+        created_at,
+        updated_at,
+        team:teams (
+          id,
+          name,
+          description
+        )
+      `)
+      .eq("id", holdingId)
+      .maybeSingle();
+
+    if (error) throw error;
 
     if (!holding) {
       return {
@@ -33,15 +43,27 @@ export async function getHolding(holdingId: string) {
       };
     }
 
+    const mappedHolding = {
+      ...holding,
+      teamId: (holding as any).team_id,
+      investDate: (holding as any).invest_date,
+      divestDate: (holding as any).divest_date,
+      amountInShares: (holding as any).amount_in_shares,
+      costCad: (holding as any).costCad,
+      createdAt: (holding as any).created_at,
+      updatedAt: (holding as any).updated_at,
+      team: (holding as any).team || null,
+    };
+
     return {
       message: "Holding retrieved successfully",
-      data: holding,
+      data: mappedHolding,
     };
   } catch (error) {
     console.error("Database error:", error);
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

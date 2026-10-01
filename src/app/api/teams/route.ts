@@ -1,29 +1,30 @@
-import { prisma } from "../../../utils/prisma";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 
 export async function GET() {
-    try {
-        const teams = await prisma.team.findMany(
-          {
-            select: {
-              id: true,
-              name: true,
-              teamType: true,
-            },
-            orderBy: { name: "asc" },
-          }
-        );
+  try {
+    const { data: rawTeams, error } = await supabaseDb
+      .from("teams")
+      .select("id, name, team_type")
+      .order("name", { ascending: true });
 
-        return Response.json(teams);
+    if (error) throw error;
 
-    } catch (error) {
-        console.error("Prisma error:", error);
-        return Response.json(
-          {
-            error: "Database connection failed",
-            message: error instanceof Error ? error.message : "Unknown error",
-            stack: error instanceof Error ? error.stack : undefined,
-          },
-          { status: 500 }
-        );
-      }
+    const teams = (rawTeams || []).map((t: any) => ({
+      id: t.id,
+      name: t.name,
+      teamType: t.team_type,
+      team_type: t.team_type,
+    }));
+
+    return Response.json(teams);
+  } catch (error) {
+    console.error("Database error:", error);
+    return Response.json(
+      {
+        error: "Database query failed",
+        message: formatDbError(error),
+      },
+      { status: 500 }
+    );
+  }
 }

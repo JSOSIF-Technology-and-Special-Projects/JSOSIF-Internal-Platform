@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 import { createAuthUser } from "@/utils/userCreation";
 import { generateRandomPassword } from "@/utils/passwordUtils";
@@ -63,9 +62,11 @@ export default async function createMember(input: CreateMemberInput) {
       // Get role name for the profile
       let roleName = "User"; // Default
       if (input.roleId) {
-        const role = await prisma.role.findUnique({
-          where: { id: input.roleId },
-        });
+        const { data: role } = await supabaseDb
+          .from("roles")
+          .select("name")
+          .eq("id", input.roleId)
+          .maybeSingle();
         if (role) {
           roleName = role.name;
         }
@@ -94,37 +95,46 @@ export default async function createMember(input: CreateMemberInput) {
       userId = createdUserId;
     }
 
-    const memberData: Prisma.MemberCreateInput = {
-      name: input.name,
-      description: input.description,
-      program: input.program,
-      year: input.year,
-      memberSince: new Date(input.memberSince),
-      ...(input.linkedin && { linkedin: input.linkedin }),
-      ...(userId && { userId }), // Link to auth user if created
-      ...(input.roleId && {
-        role: {
-          connect: { id: input.roleId },
-        },
-      }),
-      ...(input.teamId && {
-        team: {
-          connect: { id: input.teamId },
-        },
-      }),
-    };
+    const id = generateId();
+    const now = new Date().toISOString();
+    const memberSinceDate = new Date(input.memberSince).toISOString().slice(0, 10);
 
-    const member = await prisma.member.create({
-      data: memberData,
-      include: {
-        role: true,
-        team: true,
-      },
-    });
+    const { data: member, error } = await supabaseDb
+      .from("members")
+      .insert({
+        id,
+        name: input.name,
+        description: input.description || null,
+        program: input.program,
+        year: input.year,
+        member_since: memberSinceDate,
+        linkedin: input.linkedin || null,
+        user_id: userId || null,
+        role_id: input.roleId || null,
+        team_id: input.teamId || null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select("*, role:roles(*), team:teams(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedMember = {
+      ...member,
+      memberSince: member.member_since,
+      userId: member.user_id,
+      roleId: member.role_id,
+      teamId: member.team_id,
+      createdAt: member.created_at,
+      updatedAt: member.updated_at,
+      role: member.role || null,
+      team: member.team || null,
+    };
 
     return {
       message: "Member created successfully",
-      data: member,
+      data: mappedMember,
       ...(userPassword && {
         userPassword, // Return password so admin can share it (only shown once)
         email: input.email,
@@ -132,23 +142,9 @@ export default async function createMember(input: CreateMemberInput) {
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A member with this LinkedIn URL already exists",
-        };
-      }
-      if (error.code === "P2025") {
-        return {
-          message: "Database error",
-          error: "Referenced role or team not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }
