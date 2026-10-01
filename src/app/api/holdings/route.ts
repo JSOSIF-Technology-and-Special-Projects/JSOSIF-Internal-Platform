@@ -1,51 +1,29 @@
-import { prisma } from "../../../utils/prisma";
+import { supabaseDb, generateId } from "@/utils/supabaseDb";
 import YahooFinance from "yahoo-finance2";
-import { createClient } from "@supabase/supabase-js";
 
 const yahooFinance = new YahooFinance({ suppressNotices: ["yahooSurvey"] });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
 export async function GET() {
   try {
-    let rawHoldings: any[] = [];
+    const { data, error } = await supabaseDb
+      .from("holdings")
+      .select("*, team:teams(name)");
 
-    try {
-      rawHoldings = await prisma.holding.findMany({
-        include: {
-          team: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      });
-    } catch (prismaErr) {
-      console.warn("Prisma pooler unreachable, falling back to Supabase REST client:", prismaErr);
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        const { data, error } = await supabase
-          .from("holdings")
-          .select("*, team:teams(name)");
-        if (error) throw error;
-        rawHoldings = (data || []).map((row: any) => ({
-          id: row.id,
-          teamId: row.team_id,
-          ticker: row.ticker,
-          name: row.name,
-          description: row.description,
-          investDate: row.invest_date ? new Date(row.invest_date) : new Date(),
-          divestDate: row.divest_date ? new Date(row.divest_date) : null,
-          amountInShares: Number(row.amount_in_shares),
-          costCad: Number(row.costCad),
-          industry: row.industry,
-          team: row.team,
-        }));
-      } else {
-        throw prismaErr;
-      }
-    }
+    if (error) throw error;
+
+    const rawHoldings = (data || []).map((row: any) => ({
+      id: row.id,
+      teamId: row.team_id,
+      ticker: row.ticker,
+      name: row.name,
+      description: row.description,
+      investDate: row.invest_date ? new Date(row.invest_date) : new Date(),
+      divestDate: row.divest_date ? new Date(row.divest_date) : null,
+      amountInShares: Number(row.amount_in_shares),
+      costCad: Number(row.costCad),
+      industry: row.industry,
+      team: row.team,
+    }));
 
     // Helper to detect corporate bonds / fixed income debt securities
     const isBondHolding = (h: any) => {
@@ -83,10 +61,10 @@ export async function GET() {
       console.error("Failed to fetch live stock data from Yahoo Finance:", error);
     }
 
-    const holdingsWithMarketData = rawHoldings.map((h) => {
+    const holdingsWithMarketData = rawHoldings.map((h: any) => {
       const isBond = isBondHolding(h);
       const shares = Number(h.amountInShares ?? h.amount_in_shares ?? 0);
-      const costCad = typeof h.costCad?.toNumber === "function" ? h.costCad.toNumber() : Number(h.costCad);
+      const costCad = Number(h.costCad || 0);
 
       if (isBond) {
         // Corporate Bonds: Valued based on costCad input amount
@@ -186,27 +164,36 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const id = generateId();
+    const now = new Date().toISOString();
 
-    const data = {
-      teamId: body.teamId,
-      ticker: body.ticker,
-      name: body.name,
-      description: body.description || null,
-      industry: body.industry || null,
-      investDate: new Date(body.investDate),
-      divestDate: body.divestDate ? new Date(body.divestDate) : null,
-      amountInShares: Number(body.amountInShares),
-      costCad: Number(body.costCad),
-    };
+    const { data: newHolding, error } = await supabaseDb
+      .from("holdings")
+      .insert({
+        id,
+        team_id: body.teamId,
+        ticker: body.ticker,
+        name: body.name,
+        description: body.description || null,
+        industry: body.industry || null,
+        invest_date: body.investDate ? new Date(body.investDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        divest_date: body.divestDate ? new Date(body.divestDate).toISOString().slice(0, 10) : null,
+        amount_in_shares: Number(body.amountInShares),
+        costCad: Number(body.costCad),
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
 
-    const newHolding = await prisma.holding.create({ data });
+    if (error) throw error;
 
     return Response.json(newHolding);
   } catch (error) {
-    console.error("Prisma error:", error);
+    console.error("Holdings POST error:", error);
     return Response.json(
       {
-        error: "Database connection failed",
+        error: "Database operation failed",
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
       },
@@ -219,16 +206,21 @@ export async function DELETE(req: Request) {
   try {
     const id = await req.json();
 
-    const deleted = await prisma.holding.delete({
-      where: { id },
-    });
+    const { data: deleted, error } = await supabaseDb
+      .from("holdings")
+      .delete()
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return Response.json(deleted, { status: 200 });
   } catch (error) {
-    console.error("Prisma error:", error);
+    console.error("Holdings DELETE error:", error);
     return Response.json(
       {
-        error: "Database connection failed",
+        error: "Database operation failed",
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
       },

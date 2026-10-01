@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateAlumniInput {
@@ -50,64 +49,47 @@ export default async function updateAlumni({
   }
 
   try {
-    const updateData: Prisma.AlumniUpdateInput = {
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.description !== undefined && {
-        description: input.description,
-      }),
-      ...(input.companyName !== undefined && {
-        companyName: input.companyName,
-      }),
-      ...(input.industry !== undefined && { industry: input.industry }),
-      ...(input.degree !== undefined && { degree: input.degree }),
-      ...(input.yearsOnFund !== undefined && {
-        yearsOnFund: input.yearsOnFund,
-      }),
-      ...(input.linkedin !== undefined && { linkedin: input.linkedin }),
-      ...(input.formerMemberId !== undefined && {
-        formerMember: input.formerMemberId
-          ? {
-              connect: { id: input.formerMemberId },
-            }
-          : {
-              disconnect: true,
-            },
-      }),
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     };
 
-    const alumni = await prisma.alumni.update({
-      where: {
-        id: alumniId,
-      },
-      data: updateData,
-      include: {
-        formerMember: true,
-      },
-    });
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+    if (input.companyName !== undefined) updateData.company_name = input.companyName;
+    if (input.industry !== undefined) updateData.industry = input.industry;
+    if (input.degree !== undefined) updateData.degree = input.degree;
+    if (input.yearsOnFund !== undefined) updateData.years_on_fund = input.yearsOnFund;
+    if (input.linkedin !== undefined) updateData.linkedin = input.linkedin;
+    if (input.formerMemberId !== undefined) updateData.former_member_id = input.formerMemberId || null;
+
+    const { data: alumni, error } = await supabaseDb
+      .from("alumni")
+      .update(updateData)
+      .eq("id", alumniId)
+      .select("*, formerMember:members!alumni_former_member_id_fkey(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedAlumni = {
+      ...alumni,
+      companyName: alumni.company_name,
+      yearsOnFund: alumni.years_on_fund,
+      formerMemberId: alumni.former_member_id,
+      createdAt: alumni.created_at,
+      updatedAt: alumni.updated_at,
+      formerMember: alumni.formerMember || null,
+    };
 
     return {
       message: "Alumni updated successfully",
-      data: alumni,
+      data: mappedAlumni,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Alumni not found",
-          error: "Alumni not found",
-        };
-      }
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "An alumni with this LinkedIn URL already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

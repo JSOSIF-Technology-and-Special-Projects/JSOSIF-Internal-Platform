@@ -1,7 +1,7 @@
 "use server";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/utils/prisma";
+import { supabaseDb } from "@/utils/supabaseDb";
 
 /**
  * Gets the current authenticated user's member record and their role
@@ -29,9 +29,11 @@ export async function getCurrentMemberRole() {
       };
     }
 
-    const profile = await prisma.profiles.findUnique({
-      where: { id: user.id },
-    });
+    const { data: profile } = await supabaseDb
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
     if (profile?.role) {
       return {
@@ -48,10 +50,11 @@ export async function getCurrentMemberRole() {
     }
 
     // Fallback to member->role for legacy users.
-    const member = await prisma.member.findFirst({
-      where: { userId: user.id },
-      include: { role: true },
-    });
+    const { data: member } = await supabaseDb
+      .from("members")
+      .select("*, role:roles(*)")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
     if (!member || !member.role) {
       return {

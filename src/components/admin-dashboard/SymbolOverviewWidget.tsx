@@ -14,13 +14,17 @@ export default function SymbolOverviewWidget({
 	ticker,
 	bondData = [],
 }: SymbolOverviewWidgetProps) {
-	// Parse the ticker string into an array of arrays for TradingView
+	// Parse the ticker string into [label, symbol] pairs for TradingView
 	const formattedTickers = ticker
-		? ticker.split(",").map((t) => [t.trim()]) // Regular tickers
+		? ticker.split(",").map((t) => {
+				const trimmed = t.trim();
+				const label = trimmed.includes("|") ? trimmed.split("|")[0] : trimmed;
+				return [label, trimmed];
+		  })
 		: [];
 
 	// Format bond tickers into TradingView symbols
-	const formattedBondTickers = bondData.map((bond) => [bond.s]);
+	const formattedBondTickers = bondData.map((bond) => [bond.s, bond.s]);
 
 	// Combine both tickers
 	const allTickers = [...formattedTickers, ...formattedBondTickers];

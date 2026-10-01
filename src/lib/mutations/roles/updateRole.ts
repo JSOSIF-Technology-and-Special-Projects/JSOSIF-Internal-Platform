@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateRoleInput {
@@ -36,41 +35,34 @@ export default async function updateRole({
   }
 
   try {
-    const role = await prisma.role.update({
-      where: {
-        id: roleId,
-      },
-      data: {
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.description !== undefined && {
-          description: input.description,
-        }),
-      },
-    });
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+
+    const { data: role, error } = await supabaseDb
+      .from("roles")
+      .update(updateData)
+      .eq("id", roleId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Role updated successfully",
-      data: role,
+      data: {
+        ...role,
+        createdAt: role.created_at,
+        updatedAt: role.updated_at,
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Database error",
-          error: "Role not found",
-        };
-      }
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A role with this name already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

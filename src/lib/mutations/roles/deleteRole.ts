@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export default async function deleteRole({ roleId }: { roleId: string }) {
@@ -18,29 +17,28 @@ export default async function deleteRole({ roleId }: { roleId: string }) {
   }
 
   try {
-    const role = await prisma.role.delete({
-      where: {
-        id: roleId,
-      },
-    });
+    const { data: role, error } = await supabaseDb
+      .from("roles")
+      .delete()
+      .eq("id", roleId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Role deleted successfully",
-      data: role,
+      data: {
+        ...role,
+        createdAt: role.created_at,
+        updatedAt: role.updated_at,
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Role not found",
-          error: "Role not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

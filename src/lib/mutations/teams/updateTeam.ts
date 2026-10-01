@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateTeamInput {
@@ -36,41 +35,35 @@ export default async function updateTeam({
   }
 
   try {
-    const team = await prisma.team.update({
-      where: {
-        id: teamId,
-      },
-      data: {
-        ...(input.name !== undefined && { name: input.name }),
-        ...(input.description !== undefined && {
-          description: input.description,
-        }),
-      },
-    });
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+
+    const { data: team, error } = await supabaseDb
+      .from("teams")
+      .update(updateData)
+      .eq("id", teamId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Team updated successfully",
-      data: team,
+      data: {
+        ...team,
+        teamType: team.team_type,
+        createdAt: team.created_at,
+        updatedAt: team.updated_at,
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Team not found",
-          error: "Team not found",
-        };
-      }
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A team with this name already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

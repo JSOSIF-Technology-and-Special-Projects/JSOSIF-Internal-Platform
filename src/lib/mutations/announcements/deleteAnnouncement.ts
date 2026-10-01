@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export default async function deleteAnnouncement({
@@ -22,11 +21,14 @@ export default async function deleteAnnouncement({
   }
 
   try {
-    const announcement = await prisma.announcement.delete({
-      where: {
-        id: announcementId,
-      },
-    });
+    const { data: announcement, error } = await supabaseDb
+      .from("announcements")
+      .delete()
+      .eq("id", announcementId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Announcement deleted successfully",
@@ -34,17 +36,9 @@ export default async function deleteAnnouncement({
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Announcement not found",
-          error: "Announcement not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

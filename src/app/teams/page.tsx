@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/utils/prisma";
+import { supabaseDb } from "@/utils/supabaseDb";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +12,13 @@ function slugifyTeamName(name: string) {
 }
 
 export default async function TeamsPage() {
-  const teams = await prisma.team.findMany({
-    where: { teamType: "Investment" },
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, description: true },
-  });
+  const { data: rawTeams } = await supabaseDb
+    .from("teams")
+    .select("id, name, description")
+    .eq("team_type", "Investment")
+    .order("name", { ascending: true });
+
+  const teams = rawTeams || [];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">

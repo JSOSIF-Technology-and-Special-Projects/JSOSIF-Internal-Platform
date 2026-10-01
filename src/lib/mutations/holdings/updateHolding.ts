@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface UpdateHoldingInput {
@@ -76,64 +75,56 @@ export default async function updateHolding({
   }
 
   try {
-    const updateData: Prisma.HoldingUpdateInput = {
-      ...(input.teamId !== undefined && { teamId: input.teamId }),
-      ...(input.ticker !== undefined && { ticker: input.ticker }),
-      ...(input.name !== undefined && { name: input.name }),
-      ...(input.description !== undefined && {
-        description: input.description,
-      }),
-      ...(input.investDate !== undefined && {
-        investDate: new Date(input.investDate),
-      }),
-      ...(input.divestDate !== undefined && {
-        divestDate: input.divestDate ? new Date(input.divestDate) : null,
-      }),
-      ...(input.amountInShares !== undefined && {
-        amountInShares: input.amountInShares,
-      }),
-      ...(input.costCad !== undefined && {
-        costCad:
-          typeof input.costCad === "string"
-            ? parseFloat(input.costCad)
-            : input.costCad,
-      }),
-      ...(input.industry !== undefined && { industry: input.industry }),
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
     };
 
-    const holding = await prisma.holding.update({
-      where: {
-        id: holdingId,
-      },
-      data: updateData,
-      include: {
-        team: true,
-      },
-    });
+    if (input.teamId !== undefined) updateData.team_id = input.teamId;
+    if (input.ticker !== undefined) updateData.ticker = input.ticker;
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.description !== undefined) updateData.description = input.description;
+    if (input.investDate !== undefined) {
+      updateData.invest_date = new Date(input.investDate).toISOString().slice(0, 10);
+    }
+    if (input.divestDate !== undefined) {
+      updateData.divest_date = input.divestDate ? new Date(input.divestDate).toISOString().slice(0, 10) : null;
+    }
+    if (input.amountInShares !== undefined) updateData.amount_in_shares = input.amountInShares;
+    if (input.costCad !== undefined) {
+      updateData.costCad = typeof input.costCad === "string" ? parseFloat(input.costCad) : input.costCad;
+    }
+    if (input.industry !== undefined) updateData.industry = input.industry;
+
+    const { data: holding, error } = await supabaseDb
+      .from("holdings")
+      .update(updateData)
+      .eq("id", holdingId)
+      .select("*, team:teams(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedHolding = {
+      ...holding,
+      teamId: holding.team_id,
+      investDate: holding.invest_date,
+      divestDate: holding.divest_date,
+      amountInShares: holding.amount_in_shares,
+      costCad: holding.costCad,
+      createdAt: holding.created_at,
+      updatedAt: holding.updated_at,
+      team: holding.team || null,
+    };
 
     return {
       message: "Holding updated successfully",
-      data: holding,
+      data: mappedHolding,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Holding not found",
-          error: "Holding not found",
-        };
-      }
-      if (error.code === "P2003") {
-        return {
-          message: "Database error",
-          error: "Referenced team not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

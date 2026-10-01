@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
@@ -18,11 +17,14 @@ export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
   }
 
   try {
-    const alumni = await prisma.alumni.delete({
-      where: {
-        id: alumniId,
-      },
-    });
+    const { data: alumni, error } = await supabaseDb
+      .from("alumni")
+      .delete()
+      .eq("id", alumniId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Alumni deleted successfully",
@@ -30,17 +32,9 @@ export default async function deleteAlumni({ alumniId }: { alumniId: string }) {
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Alumni not found",
-          error: "Alumni not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

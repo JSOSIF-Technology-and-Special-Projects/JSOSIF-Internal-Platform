@@ -1,7 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
-import { requireAdmin } from "@/utils/permissions";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 
 export interface CreateRoleInput {
   name: string;
@@ -9,14 +7,6 @@ export interface CreateRoleInput {
 }
 
 export default async function createRole(input: CreateRoleInput) {
-  // Check admin permissions
-  // TODO: Re-enable after seeding initial roles
-  // Temporarily disabled for seeding initial roles (Member, Admin)
-  // const authError = await requireAdmin();
-  // if (authError) {
-  //   return authError;
-  // }
-
   if (!input.name) {
     return {
       message: "Missing required field: name",
@@ -25,30 +15,35 @@ export default async function createRole(input: CreateRoleInput) {
   }
 
   try {
-    const role = await prisma.role.create({
-      data: {
+    const id = generateId();
+    const now = new Date().toISOString();
+    const { data: role, error } = await supabaseDb
+      .from("roles")
+      .insert({
+        id,
         name: input.name,
-        description: input.description,
-      },
-    });
+        description: input.description || null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Role created successfully",
-      data: role,
+      data: {
+        ...role,
+        createdAt: role.created_at,
+        updatedAt: role.updated_at,
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return {
-          message: "Database error",
-          error: "A role with this name already exists",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

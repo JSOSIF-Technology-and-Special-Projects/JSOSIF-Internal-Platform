@@ -6,7 +6,7 @@ import SymbolOverviewWidget from "@/components/admin-dashboard/SymbolOverviewWid
 import PortfolioCompositionChart from "@/components/admin-dashboard/PortfolioCompositionChart";
 import HoldingsTable from "@/components/admin-dashboard/HoldingsTable";
 import PerformanceMetrics from "@/components/admin-dashboard/PerformanceMetrics";
-import { prisma } from "@/utils/prisma";
+import { supabaseDb } from "@/utils/supabaseDb";
 
 const yahooFinance = new YahooFinance();
 export const dynamic = "force-dynamic";
@@ -29,12 +29,19 @@ export default async function TeamPage({
   const { teamName } = await params;
   
   // 1. Fetch the team and their holdings from the database
-  const teams = await prisma.team.findMany({
-    where: { teamType: "Investment" },
-    include: {
-      holdings: true,
-    },
-  });
+  const { data: rawTeams } = await supabaseDb
+    .from("teams")
+    .select("*, holdings(*)")
+    .eq("team_type", "Investment");
+
+  const teams = (rawTeams || []).map((t: any) => ({
+    ...t,
+    holdings: (t.holdings || []).map((h: any) => ({
+      ...h,
+      amountInShares: h.amount_in_shares,
+      costCad: h.costCad,
+    })),
+  }));
 
   const team = teams.find((entry) => slugifyTeamName(entry.name) === teamName);
   if (!team) {
@@ -45,7 +52,7 @@ export default async function TeamPage({
   const teamDescription = team.description ?? "No team description available yet.";
 
   // 2. Extract tickers and fetch live market data from Yahoo Finance
-  const rawTickers = team.holdings.map((h) => h.ticker);
+  const rawTickers = team.holdings.map((h: any) => h.ticker);
   let liveQuotes: any[] = [];
   let exchangeRate = 1;
   
@@ -62,7 +69,7 @@ export default async function TeamPage({
   }
 
   // 3. Map the database holdings and merge them with the live Yahoo data
-  const holdings = team.holdings.map((holding) => {
+  const holdings = team.holdings.map((holding: any) => {
     const quote = liveQuotes.find((q) => q.symbol === holding.ticker);
     
     // Check if the stock is priced in USD. If so, apply the live exchange rate.
@@ -82,8 +89,8 @@ export default async function TeamPage({
     return {
       symbol: holding.ticker,
       name: holding.name,
-      shares: holding.amountInShares,
-      averageCost: Number(holding.costCad),
+      shares: Number(holding.amountInShares || 0),
+      averageCost: Number(holding.costCad || 0),
       currentPrice: currentPrice,
       change: change,
       changePercent: changePercent,
@@ -91,11 +98,11 @@ export default async function TeamPage({
   });
 
   // 4. Calculate live portfolio metrics based on the newly merged data
-  const totalValue = holdings.reduce((sum, h) => sum + h.currentPrice * h.shares, 0);
-  const totalShares = holdings.reduce((sum, h) => sum + h.shares, 0);
+  const totalValue = holdings.reduce((sum: number, h: any) => sum + h.currentPrice * h.shares, 0);
+  const totalShares = holdings.reduce((sum: number, h: any) => sum + h.shares, 0);
 
   // 5. Generate the composition data for the pie chart using live values
-  const portfolioComposition = holdings.map((holding, index) => {
+  const portfolioComposition = holdings.map((holding: any, index: number) => {
     const value = holding.shares * holding.currentPrice;
     const percentage = totalValue > 0 ? (value / totalValue) * 100 : 0;
     const palette = ["#0E5791", "#1570B8", "#2A8CD6", "#63A8E1", "#98C5EC"];
@@ -109,7 +116,7 @@ export default async function TeamPage({
   });
 
   // 6. Format tickers for the TradingView charting widget
-  const tickersString = holdings.map((h) => {
+  const tickersString = holdings.map((h: any) => {
     let tvSymbol = h.symbol;
     if (tvSymbol.endsWith(".TO")) {
       tvSymbol = `TSX:${tvSymbol.replace(".TO", "")}`;

@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export default async function deleteTeam({ teamId }: { teamId: string }) {
@@ -18,29 +17,29 @@ export default async function deleteTeam({ teamId }: { teamId: string }) {
   }
 
   try {
-    const team = await prisma.team.delete({
-      where: {
-        id: teamId,
-      },
-    });
+    const { data: team, error } = await supabaseDb
+      .from("teams")
+      .delete()
+      .eq("id", teamId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Team deleted successfully",
-      data: team,
+      data: {
+        ...team,
+        teamType: team.team_type,
+        createdAt: team.created_at,
+        updatedAt: team.updated_at,
+      },
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Team not found",
-          error: "Team not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export interface CreateHoldingInput {
@@ -70,40 +69,53 @@ export default async function createHolding(input: CreateHoldingInput) {
   }
 
   try {
-    const holding = await prisma.holding.create({
-      data: {
-        teamId: input.teamId,
+    const id = generateId();
+    const now = new Date().toISOString();
+    const investDateStr = new Date(input.investDate).toISOString().slice(0, 10);
+    const divestDateStr = input.divestDate ? new Date(input.divestDate).toISOString().slice(0, 10) : null;
+
+    const { data: holding, error } = await supabaseDb
+      .from("holdings")
+      .insert({
+        id,
+        team_id: input.teamId,
         ticker: input.ticker,
         name: input.name,
-        description: input.description,
-        investDate: new Date(input.investDate),
-        divestDate: input.divestDate ? new Date(input.divestDate) : null,
-        amountInShares: input.amountInShares,
+        description: input.description || null,
+        invest_date: investDateStr,
+        divest_date: divestDateStr,
+        amount_in_shares: input.amountInShares,
         costCad: costCadValue,
-        industry: input.industry,
-      },
-      include: {
-        team: true,
-      },
-    });
+        industry: input.industry || null,
+        created_at: now,
+        updated_at: now,
+      })
+      .select("*, team:teams(*)")
+      .single();
+
+    if (error) throw error;
+
+    const mappedHolding = {
+      ...holding,
+      teamId: holding.team_id,
+      investDate: holding.invest_date,
+      divestDate: holding.divest_date,
+      amountInShares: holding.amount_in_shares,
+      costCad: holding.costCad,
+      createdAt: holding.created_at,
+      updatedAt: holding.updated_at,
+      team: holding.team || null,
+    };
 
     return {
       message: "Holding created successfully",
-      data: holding,
+      data: mappedHolding,
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Database error",
-          error: "Referenced team not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }

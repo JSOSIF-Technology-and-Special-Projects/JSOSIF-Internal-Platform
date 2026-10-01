@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "@/utils/prisma";
-import { Prisma } from "@prisma/client";
+import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
 import { requireAdmin } from "@/utils/permissions";
 
 export default async function deleteHolding({
@@ -22,11 +21,14 @@ export default async function deleteHolding({
   }
 
   try {
-    const holding = await prisma.holding.delete({
-      where: {
-        id: holdingId,
-      },
-    });
+    const { data: holding, error } = await supabaseDb
+      .from("holdings")
+      .delete()
+      .eq("id", holdingId)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     return {
       message: "Holding deleted successfully",
@@ -34,17 +36,9 @@ export default async function deleteHolding({
     };
   } catch (error) {
     console.error("Database error:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        return {
-          message: "Holding not found",
-          error: "Holding not found",
-        };
-      }
-    }
     return {
       message: "Database error",
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: formatDbError(error),
     };
   }
 }
