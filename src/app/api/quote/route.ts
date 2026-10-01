@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       fiftyTwoWeekLow: (quote.fiftyTwoWeekLow ?? rawPrice) * multiplier,
       volume: quote.regularMarketVolume ?? 0,
       marketCap: quote.marketCap ?? null,
-      sector: quote.sector || quote.financialCurrency || "General",
+      sector: quote.sector || null,
     });
   } catch (error: any) {
     console.error("Error in /api/quote route:", error);

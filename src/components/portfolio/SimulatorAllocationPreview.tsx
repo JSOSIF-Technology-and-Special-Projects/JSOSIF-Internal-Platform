@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -68,10 +68,82 @@ export default function SimulatorAllocationPreview({
 
   const activeTotalValue = chartMode === "after" ? totalMarketValueAfter : totalMarketValueBefore;
 
-  // Concentration risk alerts
-  const highConcentrationItems = activeComparisons.filter(
-    (item) => item.afterPercent > (activeTab === "sector" ? 30 : 15)
-  );
+  // IPS Mandate & Concentration Compliance Diagnostics
+  const ipsAlerts = useMemo(() => {
+    const alerts: {
+      id: string;
+      level: "advisory" | "breach";
+      title: string;
+      message: string;
+    }[] = [];
+
+    // 1. Fixed Income (IPS Section 14: Mandate Band 30.0% – 44.0%)
+    // Evaluated strictly against the 30% minimum range rule as mandated by the IPS
+    const fixedIncomeAsset = assetComparisons.find(
+      (a) => a.name.toLowerCase().includes("fixed income") || a.name.toLowerCase().includes("bond")
+    );
+    const fixedIncomeTeam = teamComparisons.find(
+      (t) => t.name.toLowerCase().includes("fixed income") || t.name.toLowerCase().includes("bond")
+    );
+    const fiPct = fixedIncomeAsset?.afterPercent ?? fixedIncomeTeam?.afterPercent ?? 0;
+
+    if (fiPct > 0) {
+      if (fiPct < 30.0) {
+        alerts.push({
+          id: "fi-under",
+          level: "advisory",
+          title: "Fixed Income Below 30% Minimum Mandate",
+          message: `Fixed Income simulated allocation is ${fiPct.toFixed(1)}%, which is below the 30.0% minimum IPS mandate range (mandate band: 30.0% – 44.0%, IPS Section 14). Consider directing buys to fixed income to reach compliance.`,
+        });
+      } else if (fiPct > 44.0) {
+        alerts.push({
+          id: "fi-over",
+          level: "breach",
+          title: "Fixed Income Exceeds 44% Maximum Mandate",
+          message: `Fixed Income simulated allocation is ${fiPct.toFixed(1)}%, which exceeds the 44.0% maximum IPS mandate ceiling (IPS Section 14).`,
+        });
+      }
+    }
+
+    // 2. Equity Sector / Division Concentration (IPS Section 15: Max 25.0% single sector limit)
+    const equitySectors = sectorComparisons.filter(
+      (s) =>
+        !s.name.toLowerCase().includes("cash") &&
+        !s.name.toLowerCase().includes("fixed") &&
+        !s.name.toLowerCase().includes("bond")
+    );
+    const breachSectors = equitySectors.filter((s) => s.afterPercent > 25.0);
+    const approachingSectors = equitySectors.filter((s) => s.afterPercent > 23.5 && s.afterPercent <= 25.0);
+
+    if (breachSectors.length > 0) {
+      alerts.push({
+        id: "sector-breach",
+        level: "breach",
+        title: "Equity Sector Concentration Limit Exceeded",
+        message: `${breachSectors.map((s) => `${s.name} (${s.afterPercent.toFixed(1)}%)`).join(", ")} exceeds the 25.0% maximum IPS sector concentration limit (IPS Section 15).`,
+      });
+    } else if (approachingSectors.length > 0) {
+      alerts.push({
+        id: "sector-approaching",
+        level: "advisory",
+        title: "Equity Sector Concentration Advisory",
+        message: `${approachingSectors.map((s) => `${s.name} (${s.afterPercent.toFixed(1)}%)`).join(", ")} is approaching the 25.0% maximum IPS sector limit.`,
+      });
+    }
+
+    // 3. Cash Reserve Limit (IPS Section 14: Max 10.0%)
+    const cashPct = totalMarketValueAfter > 0 ? (cashAfter / totalMarketValueAfter) * 100 : 0;
+    if (cashPct > 10.0) {
+      alerts.push({
+        id: "cash-over",
+        level: "advisory",
+        title: "Cash Reserve Exceeds 10% Guideline",
+        message: `Simulated cash reserve is ${cashPct.toFixed(1)}%, exceeding the 10.0% maximum operational liquidity cap (IPS Section 14).`,
+      });
+    }
+
+    return alerts;
+  }, [assetComparisons, teamComparisons, sectorComparisons, totalMarketValueAfter, cashAfter]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -351,30 +423,39 @@ export default function SimulatorAllocationPreview({
         </div>
       </div>
 
-      {/* Concentration Risk Banner if relevant */}
-      {highConcentrationItems.length > 0 && (
-        <div className="mt-6 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-start gap-3 text-xs text-amber-900">
-          <svg
-            className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <div>
-            <span className="font-bold">Portfolio Concentration Advisory: </span>
-            <span>
-              The simulated trade places{" "}
-              {highConcentrationItems.map((h) => `${h.name} (${h.afterPercent.toFixed(1)}%)`).join(", ")}{" "}
-              above recommended concentration guidelines. Review with the Portfolio Manager and Investment Committee prior to execution.
-            </span>
-          </div>
+      {/* IPS Compliance & Concentration Diagnostics Banner */}
+      {ipsAlerts.length > 0 && (
+        <div className="mt-6 space-y-2.5">
+          {ipsAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className={`p-4 rounded-2xl flex items-start gap-3 text-xs ${
+                alert.level === "breach"
+                  ? "bg-rose-50/80 border border-rose-200 text-rose-900"
+                  : "bg-amber-50/80 border border-amber-200 text-amber-900"
+              }`}
+            >
+              <svg
+                className={`w-5 h-5 shrink-0 mt-0.5 ${
+                  alert.level === "breach" ? "text-rose-600" : "text-amber-600"
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <div>
+                <span className="font-bold">{alert.title}: </span>
+                <span>{alert.message}</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

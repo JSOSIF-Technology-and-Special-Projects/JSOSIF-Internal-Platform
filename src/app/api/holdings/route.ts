@@ -25,8 +25,21 @@ export async function GET() {
       team: row.team,
     }));
 
+    // Helper to detect cash reserve holdings
+    const isCashHolding = (h: any) => {
+      const ticker = (h.ticker || "").toUpperCase();
+      const name = (h.name || "").toLowerCase();
+      return (
+        ticker === "CASH" ||
+        ticker === "CAD.CASH" ||
+        name.includes("cash reserve") ||
+        name.includes("cash & equivalents")
+      );
+    };
+
     // Helper to detect corporate bonds / fixed income debt securities
     const isBondHolding = (h: any) => {
+      if (isCashHolding(h)) return false;
       const ticker = (h.ticker || "").toUpperCase();
       const name = (h.name || "").toLowerCase();
       const team = (h.team?.name || "").toLowerCase();
@@ -39,9 +52,9 @@ export async function GET() {
       );
     };
 
-    // Filter equity tickers for Yahoo Finance live pricing
+    // Filter equity tickers for Yahoo Finance live pricing (exclude bonds & cash)
     const equityTickers = rawHoldings
-      .filter((h) => !isBondHolding(h))
+      .filter((h) => !isBondHolding(h) && !isCashHolding(h))
       .map((h) => h.ticker)
       .filter(Boolean);
 
@@ -62,9 +75,35 @@ export async function GET() {
     }
 
     const holdingsWithMarketData = rawHoldings.map((h: any) => {
+      const isCash = isCashHolding(h);
       const isBond = isBondHolding(h);
       const shares = Number(h.amountInShares ?? h.amount_in_shares ?? 0);
       const costCad = Number(h.costCad || 0);
+
+      if (isCash) {
+        // Fund Cash Reserve: Valued at 1:1 face value CAD
+        const cashValue = costCad * (shares || 1);
+        return {
+          id: h.id,
+          name: "Fund Cash Reserve",
+          team: "Cash",
+          ticker: "CASH",
+          symbol: "CASH",
+          description: h.description || "Official Fund Cash Reserve",
+          amountInShares: shares || 1,
+          shares: shares || 1,
+          costCad,
+          averageCost: costCad,
+          currentPrice: costCad,
+          change: 0,
+          changePercent: 0,
+          marketValue: cashValue,
+          sector: "Cash & Liquidity",
+          industry: "Cash & Equivalents",
+          assetType: "Cash",
+          investDate: h.investDate ? new Date(h.investDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        };
+      }
 
       if (isBond) {
         // Corporate Bonds: Valued based on costCad input amount

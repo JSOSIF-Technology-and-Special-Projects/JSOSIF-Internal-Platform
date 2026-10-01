@@ -16,7 +16,7 @@ export interface PortfolioHolding {
   currentPrice: number;
   change: number;
   changePercent: number;
-  assetType?: "Equity" | "Bond";
+  assetType?: "Equity" | "Bond" | "Cash";
 }
 
 export const fallbackHoldings: PortfolioHolding[] = [

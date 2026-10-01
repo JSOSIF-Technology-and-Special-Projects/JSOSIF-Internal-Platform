@@ -238,78 +238,37 @@ export default function BenchmarkComparison({
           </div>
         </div>
 
-        {/* Alpha & Return Metric Highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-slate-800/80 mb-6">
-          {/* Fund Return */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                JSOSIF Portfolio ({selectedTimeframe})
-              </span>
+        {/* Compact Alpha & Return Summary Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-4 py-3.5 px-5 rounded-2xl bg-white/5 border border-white/10 mb-4">
+          <div className="flex flex-wrap items-center gap-5 sm:gap-8 text-xs">
+            <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#2A8CD6]" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400">
-              {currentData.portfolioReturn >= 0 ? "+" : ""}
-              {currentData.portfolioReturn.toFixed(2)}%
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Consolidated {selectedTimeframe} trailing return
-            </p>
-          </div>
-
-          {/* S&P 500 Return */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                S&P 500 Benchmark ({selectedTimeframe})
+              <span className="text-slate-400">JSOSIF Trailing Return:</span>
+              <span className="font-bold text-emerald-400 text-sm">
+                {currentData.portfolioReturn >= 0 ? "+" : ""}{currentData.portfolioReturn.toFixed(2)}%
               </span>
+            </div>
+            <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-amber-300">
-              {currentData.sp500Return >= 0 ? "+" : ""}
-              {currentData.sp500Return.toFixed(2)}%
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              SPY Index ETF {selectedTimeframe} trailing return
-            </p>
-          </div>
-
-          {/* Relative Spread / Alpha */}
-          <div
-            className={`p-4 rounded-2xl border ${
-              currentData.isOutperforming
-                ? "bg-emerald-500/10 border-emerald-500/30"
-                : "bg-rose-500/10 border-rose-500/30"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-                Relative Spread (Alpha)
-              </span>
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  currentData.isOutperforming
-                    ? "bg-emerald-500/20 text-emerald-300"
-                    : "bg-rose-500/20 text-rose-300"
-                }`}
-              >
-                {currentData.isOutperforming ? "Outperforming" : "Underperforming"}
+              <span className="text-slate-400">S&P 500 (SPY):</span>
+              <span className="font-bold text-amber-300 text-sm">
+                {currentData.sp500Return >= 0 ? "+" : ""}{currentData.sp500Return.toFixed(2)}%
               </span>
             </div>
-            <div
-              className={`text-2xl sm:text-3xl font-black ${
-                currentData.isOutperforming ? "text-emerald-400" : "text-rose-400"
-              }`}
-            >
-              {currentData.alpha >= 0 ? "+" : ""}
-              {currentData.alpha.toFixed(2)}%
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400">Net Alpha:</span>
+              <span className={`font-bold text-sm ${currentData.isOutperforming ? "text-emerald-400" : "text-rose-400"}`}>
+                {currentData.alpha >= 0 ? "+" : ""}{currentData.alpha.toFixed(2)}%
+              </span>
             </div>
-            <p className="text-[11px] text-slate-300 mt-1">
-              {currentData.isOutperforming
-                ? `Beating S&P 500 by +${currentData.alpha.toFixed(2)}% over ${selectedTimeframe}`
-                : `Trailing S&P 500 by ${currentData.alpha.toFixed(2)}% over ${selectedTimeframe}`}
-            </p>
           </div>
+          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+            currentData.isOutperforming
+              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+              : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+          }`}>
+            {currentData.isOutperforming ? "Outperforming S&P 500" : "Trailing S&P 500"}
+          </span>
         </div>
 
         {/* Normalized Progression Chart (Recharts) */}

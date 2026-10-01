@@ -16,11 +16,6 @@ const resources = [
     description: "Reference library for investing and valuation concepts.",
     href: "https://www.investopedia.com/",
   },
-  {
-    title: "Damodaran Data",
-    description: "Public valuation datasets and industry benchmarks.",
-    href: "https://pages.stern.nyu.edu/~adamodar/",
-  },
 ];
 
 export default function LearningResourcesPage() {

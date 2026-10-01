@@ -119,6 +119,7 @@ export default function Header() {
       },
       { name: "Portfolio Overview", href: "/portfolio-overview" },
       { name: "Trade Simulator", href: "/simulator" },
+      { name: "Investment Policy (IPS)", href: "/ips" },
       ...(adminRole ? [{ name: "Website Dashboard", href: "/admin-dashboard" }] : []),
       { name: "Learning Resources", href: "/learningresources" },
     ];
