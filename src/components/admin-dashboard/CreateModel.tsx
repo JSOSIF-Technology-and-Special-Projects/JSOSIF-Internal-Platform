@@ -20,6 +20,7 @@ export interface CreateField {
 
 interface CreateModelProps {
 	modelName: string;
+	mode?: "create" | "edit";
 	createFields: CreateField[];
 	toggleModel: () => void;
 	modelOpen: boolean;
@@ -31,6 +32,7 @@ interface CreateModelProps {
 
 export default function CreateModel({
 	modelName,
+	mode = "create",
 	modelDescription,
 	createFields,
 	toggleModel,
@@ -40,6 +42,7 @@ export default function CreateModel({
 	extraArgs,
 }: CreateModelProps) {
 	const [formData, setFormData] = useState<any>({});
+	const [submitError, setSubmitError] = useState("");
 	const [loading, setLoading] = useState<boolean>(false);
 
 	useEffect(() => {
@@ -68,6 +71,7 @@ export default function CreateModel({
 	async function handleSubmit() {
 		if (loading) return;
 		setLoading(true);
+		setSubmitError("");
 		const inputs = Object.fromEntries(
 			Object.keys(formData).map((key) => {
 				let tempKey = key;
@@ -95,6 +99,9 @@ export default function CreateModel({
 				...inputs,
 				...extraArgs,
 			});
+			if (result?.error) {
+				throw new Error(result.message ? `${result.message}: ${result.error}` : String(result.error));
+			}
 			if (result?.errors) {
 				let message =
 					"Error creating " +
@@ -104,15 +111,16 @@ export default function CreateModel({
 				for (let error of result.errors) {
 					message += error.message + "\n";
 				}
-				console.error(message);
+				throw new Error(message);
 			} else if (afterCreate) {
-				afterCreate(result?.data);
+				await afterCreate(result?.data);
 			}
-		} catch (error) {
-			console.error(error);
-		}
-		toggleModel();
-		setLoading(false);
+		      toggleModel();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Unable to save changes.");
+    } finally {
+      setLoading(false);
+    }
 	}
 
 	return (
@@ -127,12 +135,11 @@ export default function CreateModel({
 			<div className="absolute top-32 left-1/2 -translate-x-1/2 w-[90vw] sm:w-[40vw] max-h-[80vh] overflow-y-auto bg-white rounded-xl border p-6 z-50">
 				<div className="w-full justify-between flex items-center gap-12">
 					<h1 className="text-2xl font-semibold">
-						Create a New {modelName}
+						{mode === "edit" ? "Edit" : "Create a New"} {modelName}
 					</h1>
 					<button
 						onClick={() => {
 							toggleModel();
-							console.log(formData);
 						}}
 					>
 						<svg
@@ -152,6 +159,7 @@ export default function CreateModel({
 					</button>
 				</div>
 				{modelDescription && <p>{modelDescription}</p>}
+        {submitError && <p role="alert" className="text-red-600">{submitError}</p>}
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();
@@ -292,9 +300,10 @@ export default function CreateModel({
 					<div className="col-span-2 flex justify-end">
 						<button
 							className="text-white font-medium !px-12 bg-primary border-primary btn"
+							disabled={loading}
 							type="submit"
 						>
-							Create
+                            {loading ? "Saving…" : mode === "edit" ? "Save Changes" : "Create"}
 						</button>
 					</div>
 				</form>

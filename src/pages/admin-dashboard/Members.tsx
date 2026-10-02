@@ -30,7 +30,11 @@ async function getMembers() {
     cache: "no-store",
   });
 
-  return response.json();
+  const result = await response.json();
+  if (!response.ok || result.error) {
+    throw new Error(result.message ? `${result.message}: ${result.error}` : result.error || "Request failed");
+  }
+  return result;
 }
 
 async function getRoles() {
@@ -38,7 +42,11 @@ async function getRoles() {
     cache: "no-store",
   });
 
-  return response.json();
+  const result = await response.json();
+  if (!response.ok || result.error) {
+    throw new Error(result.message ? `${result.message}: ${result.error}` : result.error || "Request failed");
+  }
+  return result;
 }
 
 async function getTeams() {
@@ -46,7 +54,11 @@ async function getTeams() {
     cache: "no-store",
   });
 
-  return response.json();
+  const result = await response.json();
+  if (!response.ok || result.error) {
+    throw new Error(result.message ? `${result.message}: ${result.error}` : result.error || "Request failed");
+  }
+  return result;
 }
 
 async function createMember(input: CreateMemberInput) {
@@ -58,10 +70,18 @@ async function createMember(input: CreateMemberInput) {
     body: JSON.stringify(input),
   });
 
-  return response.json();
+  const result = await response.json();
+  if (!response.ok || result.error) {
+    throw new Error(result.message ? `${result.message}: ${result.error}` : result.error || "Request failed");
+  }
+  return result;
 }
 
 export default function Members() {
+  const [editingMember, setEditingMember] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [data, setData] = useState<unknown[] | ["empty"]>(["empty"]);
   const [roles, setRoles] = useState<SelectOption[]>([]);
   const [teams, setTeams] = useState<SelectOption[]>([]);
@@ -72,7 +92,7 @@ export default function Members() {
         if (res.error) return console.error(res.error);
         setData(res.data);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => { setError(err.message); setData([]); });
 
     getRoles()
       .then((res) => {
@@ -142,38 +162,82 @@ export default function Members() {
 
   const [createModelOpen, setCreateModelOpen] = useState<boolean>(false);
   function toggleCreateModel() {
-    setCreateModelOpen((prev) => !prev);
+    setCreateModelOpen(false);
+    setEditingMember(null);
   }
 
-  function refreshData() {
-    getMembers()
-      .then((res) => {
-        if (res.error) return console.error(res.error);
-        setData(res.data);
-      })
-      .catch((err) => console.error(err));
+  async function deleteRow(id: string | number) {
+    if (deleting || !window.confirm("Delete this member?")) return;
+    setDeleting(true);
+    setSuccess("");
+    setError("");
+    try {
+      const response = await fetch(`/api/admin/members/${encodeURIComponent(id)}`, { method: "DELETE" });
+      const result = await response.json();
+      if (!response.ok || result.error) throw new Error(result.message || result.error || "Delete failed");
+      setSuccess("Member deleted successfully.");
+      await refreshData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
   }
+
+  async function refreshData() {
+    const res = await getMembers();
+    setData(res.data);
+    setError("");
+  }
+
+  const formFields = editingMember
+    ? createFields.filter((field) => !["email", "password"].includes(field.key)).map((field) => ({
+        ...field,
+        value: field.key === "memberSince" ? editingMember.memberSince?.slice(0, 10) : editingMember[field.key],
+      }))
+    : createFields;
 
   return (
     <>
-      <CreateModel
+      {createModelOpen && <CreateModel
+        mode={editingMember ? "edit" : "create"}
         modelName="Member"
-        createFields={createFields}
-        createMutation={(input: Partial<CreateMemberInput>) =>
-          createMember({
-            ...input,
-            createUser: Boolean(input.email),
-          } as CreateMemberInput)
-        }
+        createFields={formFields}
+        createMutation={async (input: Partial<CreateMemberInput>) => {
+          setSuccess("");
+          if (!editingMember) {
+            const result = await createMember({ ...input, createUser: Boolean(input.email) } as CreateMemberInput);
+            setSuccess("Member created successfully.");
+            return result;
+          }
+          const response = await fetch(`/api/admin/members/${encodeURIComponent(editingMember.id)}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(input),
+          });
+          const result = await response.json();
+          if (!response.ok || result.error) throw new Error(result.message || result.error || "Update failed");
+          setSuccess("Member updated successfully.");
+          return result;
+        }}
         toggleModel={toggleCreateModel}
         afterCreate={refreshData}
         modelOpen={createModelOpen}
-      />
+      />}
       <div className="w-full h-full p-10">
         <h1 className="text-4xl font-medium mb-6">Members</h1>
+        {success && (
+          <div role="status" className="mb-4 flex items-center justify-between gap-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-green-800">
+            <span>{success}</span>
+            <button type="button" aria-label="Dismiss success message" className="shrink-0 underline" onClick={() => setSuccess("")}>Dismiss</button>
+          </div>
+        )}
+        {error && <p role="alert" className="mb-4 text-red-600">{error}</p>}
         <DataTable
           initialData={data}
-          onCreateClick={toggleCreateModel}
+          onCreateClick={() => { setEditingMember(null); setCreateModelOpen(true); }}
+          onEdit={(row) => { setEditingMember(row); setCreateModelOpen(true); }}
+          onDelete={deleteRow}
           headers={headers}
           modelName="Member"
           idKey="id"

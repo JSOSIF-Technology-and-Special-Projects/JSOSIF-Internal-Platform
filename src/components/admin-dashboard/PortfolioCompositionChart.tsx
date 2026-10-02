@@ -47,7 +47,7 @@ export default function PortfolioCompositionChart({ data = defaultData }: Portfo
 
   return (
     <div className="h-full w-full flex flex-col gap-4">
-      <div className="flex-1 min-h-[320px]">
+      <div className="h-[320px] w-full shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

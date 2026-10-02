@@ -37,6 +37,13 @@ export default async function createHolding(input: CreateHoldingInput) {
     };
   }
 
+  if (typeof input.amountInShares !== "number" || !Number.isFinite(input.amountInShares) || input.costCad === null || input.costCad === "" || !Number.isFinite(Number(input.costCad))) {
+    return { message: "Shares and cost must be numbers", error: "Invalid numeric value" };
+  }
+  if (Number.isNaN(new Date(input.investDate).getTime())) {
+    return { message: "A valid investment date is required", error: "Invalid date" };
+  }
+
   // Validate non-negative values
   if (input.amountInShares < 0) {
     return {

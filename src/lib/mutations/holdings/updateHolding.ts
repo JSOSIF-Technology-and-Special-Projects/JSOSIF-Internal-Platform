@@ -74,6 +74,25 @@ export default async function updateHolding({
     }
   }
 
+  if (input.name !== undefined && (typeof input.name !== "string" || !input.name.trim())) {
+    return { message: "name is required", error: "Invalid field value" };
+  }
+  if (input.ticker !== undefined && (typeof input.ticker !== "string" || !input.ticker.trim())) {
+    return { message: "ticker is required", error: "Invalid field value" };
+  }
+  if (input.teamId !== undefined && (typeof input.teamId !== "string" || !input.teamId.trim())) {
+    return { message: "teamId is required", error: "Invalid field value" };
+  }
+  if (input.amountInShares !== undefined && (typeof input.amountInShares !== "number" || !Number.isFinite(input.amountInShares))) {
+    return { message: "Shares must be a number", error: "Invalid amountInShares value" };
+  }
+  if (input.costCad !== undefined && (input.costCad === null || input.costCad === "" || !Number.isFinite(Number(input.costCad)))) {
+    return { message: "Cost must be a number", error: "Invalid costCad value" };
+  }
+  if (input.investDate !== undefined && (!input.investDate || Number.isNaN(new Date(input.investDate).getTime()))) {
+    return { message: "A valid investment date is required", error: "Invalid date" };
+  }
+
   try {
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),

@@ -22,6 +22,7 @@ interface DatatableProps {
 	idKey: string;
 	description?: string;
 	inspectLink?: string;
+	onEdit?: (row: any) => void;
 	onDelete?: (id: string | number, e?: React.MouseEvent<HTMLButtonElement>) => void;
 	enablePagination?: boolean;
 	rowsPerPage?: number;
@@ -38,6 +39,7 @@ export default function DataTable({
 	description,
 	inspectLink,
 	onDelete,
+	onEdit,
 	enablePagination = false,
 	rowsPerPage = 8,
 	fillEmptyRows = false,
@@ -57,6 +59,9 @@ export default function DataTable({
     setRowsPerPageValue(next);
     setRowsPerPageInput(String(next));
   }, [rowsPerPage]);
+
+  const cellStyles = "!p-4 text-left align-middle";
+  const hasActions = Boolean(onEdit || onDelete);
 
   const hasData =
     Array.isArray(initialData) &&
@@ -159,10 +164,10 @@ export default function DataTable({
   }
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full min-w-0">
       {/* Table options/dropdowns */}
       <div className="border rounded-2xl p-8">
-        <div className="flex justify-between items-center px-4">
+        <div className="flex flex-wrap justify-between items-center gap-4 px-4">
           <div className="text-sm">{description}</div>
           <div>
             <button
@@ -186,18 +191,19 @@ export default function DataTable({
 
 				{/* Table */}
 				<div className="mt-4">
-					<div className="px-4 overflow-x-auto" id="data-table-wrapper">
-						<table className="h-full w-full">
+					<div className="w-full overflow-x-auto" id="data-table-wrapper">
+						<table className="h-full w-full text-base">
 							<thead className="border-b h-10">
-								<tr className="text-left px-10">
+								<tr className="bg-white">
 									{headers.map((header, i) => (
 										<th
-											className="!p-4 text-nowrap"
+											className={`${cellStyles} whitespace-nowrap`}
 											key={i}
 										>
 											{header.label}
 										</th>
 									))}
+                  {hasActions && <th className={`${cellStyles} whitespace-nowrap`}>Actions</th>}
 								</tr>
 							</thead>
 							{hasData ? (
@@ -211,106 +217,71 @@ export default function DataTable({
 													? "border-b"
 													: ""
 											}
-										relative group`}
+										group h-16 bg-white transition-none hover:bg-base-200`}
 										>
 											{headers.map((header, i) => (
 												<td
 													key={i}
-													className="!p-4 !pr-20"
+													className={cellStyles}
 												>
-													<p
-														className={`relative z-10 text-wrap w-fit ${header?.styles}`}
-													>
-														{findKeyValue(
-															row,
-															header
-														)}
-													</p>
-													{/* Support functions */}
-													{i === 0 ? (
-														<>
-															<div className="right-0 top-1/2 -translate-y-1/2 absolute opacity-0 pointer-events-none flex group-hover:opacity-100 group-hover:pointer-events-auto gap-2 items-center h-full transition-all px-4 z-10">
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	const id = findKeyValue(row, {
-																		key: idKey,
-																		label: "",
-																		resolver: (r) => r[idKey],
-																	});
-															
-																	onDelete?.(id, e); 
-																}}
-																className="w-8 h-8 rounded-full flex items-center justify-center p-1"
-														>
-															<svg
-																		xmlns="http://www.w3.org/2000/svg"
-																		viewBox="0 0 24 24"
-																	>
-																		<path
-																			fill="none"
-																			stroke="currentColor"
-																			strokeLinecap="round"
-																			strokeLinejoin="round"
-																			strokeWidth="2"
-																			d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"
-																		/>
-																	</svg>
-														</button>
-
-															</div>
-															<a
-																href={`/app/${
-																	(inspectLink
-																		? inspectLink
-																		: modelName
-																				.toLowerCase()
-																				.replaceAll(
-																					" ",
-																					"-"
-																				)
-																				.concat(
-																					"s"
-																				)) +
-																	"/" +
-																	findKeyValue(
-																		row,
-																		{
-																			key: idKey,
-																			label: "",
-																			resolver:
-																				(
-																					row
-																				) =>
-																					row[
-																						idKey
-																					],
-																		}
-																	)
-																}`}
-																className="absolute right-0 top-1/2 -translate-y-1/2 w-full rounded-lg h-full transition-colors bg-transparent group-hover:bg-base-200"
-															/>
-														</>
-													) : (
-														""
-													)}
+													<div className={`text-wrap w-fit ${header.styles || ""}`}>
+                            {i === 0 ? (
+                              onEdit ? (
+                                <button
+                                  type="button"
+                                  className="text-left hover:underline focus-visible:outline focus-visible:outline-2"
+                                  onClick={() => onEdit(row)}
+                                >
+                                  {findKeyValue(row, header)}
+                                </button>
+                              ) : (
+                                <a href={`/app/${inspectLink || modelName.toLowerCase().replaceAll(" ", "-") + "s"}/${encodeURIComponent(row[idKey])}`} className="hover:underline">
+                                  {findKeyValue(row, header)}
+                                </a>
+                              )
+                            ) : findKeyValue(row, header)}
+                          </div>
 												</td>
 											))}
+                      {hasActions && (
+                        <td className={cellStyles}>
+                          <div className="flex flex-nowrap items-center gap-2">
+                            {onEdit && (
+                              <button type="button" className="h-8 shrink-0 rounded-md border px-3 text-sm whitespace-nowrap hover:bg-gray-100 focus-visible:outline focus-visible:outline-2" onClick={(e) => { e.stopPropagation(); onEdit(row); }}>
+                                Edit
+                              </button>
+                            )}
+                            {onDelete && (
+                              <button
+                                type="button"
+                                aria-label={`Delete ${modelName}`}
+                                onClick={(e) => { e.stopPropagation(); onDelete(row[idKey], e); }}
+                                className="w-8 h-8 shrink-0 rounded-md border flex items-center justify-center p-1 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6">
+                                  <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
 										</tr>
 									))}
 									{Array.from({ length: emptyRowsCount }).map((_, i) => (
 										<tr
 											key={`empty-row-${i}`}
-											className={i === emptyRowsCount - 1 ? "" : "border-b"}
+											className={`h-16 bg-white ${i === emptyRowsCount - 1 ? "" : "border-b"}`}
 										>
 											{headers.map((header, headerIndex) => (
 												<td
 													key={`empty-cell-${header.key}-${headerIndex}`}
-													className="!p-4 !pr-20"
+													className={cellStyles}
 												>
 													&nbsp;
 												</td>
 											))}
+                      {hasActions && <td className={cellStyles}>&nbsp;</td>}
 										</tr>
 									))}
 								</tbody>

@@ -48,6 +48,22 @@ export default async function updateAlumni({
     };
   }
 
+  if (input.name !== undefined && (typeof input.name !== "string" || !input.name.trim())) {
+    return { message: "name is required", error: "Invalid field value" };
+  }
+  if (input.companyName !== undefined && (typeof input.companyName !== "string" || !input.companyName.trim())) {
+    return { message: "companyName is required", error: "Invalid field value" };
+  }
+  if (input.industry !== undefined && (typeof input.industry !== "string" || !input.industry.trim())) {
+    return { message: "industry is required", error: "Invalid field value" };
+  }
+  if (input.degree !== undefined && (typeof input.degree !== "string" || !input.degree.trim())) {
+    return { message: "degree is required", error: "Invalid field value" };
+  }
+  if (input.yearsOnFund !== undefined && (typeof input.yearsOnFund !== "number" || !Number.isFinite(input.yearsOnFund))) {
+    return { message: "Years on fund must be a number", error: "Invalid yearsOnFund value" };
+  }
+
   try {
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
