@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import YahooFinance from "yahoo-finance2";
@@ -7,6 +7,7 @@ import PortfolioCompositionChart from "@/components/admin-dashboard/PortfolioCom
 import HoldingsTable from "@/components/admin-dashboard/HoldingsTable";
 import PerformanceMetrics from "@/components/admin-dashboard/PerformanceMetrics";
 import { supabaseDb } from "@/utils/supabaseDb";
+import TeamCorrelationMatrix from "@/components/portfolio/TeamCorrelationMatrix";
 
 const yahooFinance = new YahooFinance();
 export const dynamic = "force-dynamic";
@@ -194,8 +195,8 @@ export default async function TeamPage({
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Composition Chart */}
-          <div className="lg:col-span-1">
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
+          <div className="lg:col-span-1 flex">
+            <div className="w-full rounded-3xl bg-white border border-slate-200/80 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Portfolio Composition</h2>
               {portfolioComposition.length > 0 ? (
                 <PortfolioCompositionChart data={portfolioComposition} />
@@ -206,8 +207,8 @@ export default async function TeamPage({
           </div>
 
           {/* TradingView Overview Widget */}
-          <div className="lg:col-span-2">
-            <div className="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
+          <div className="lg:col-span-2 flex">
+            <div className="w-full rounded-3xl bg-white border border-slate-200/80 p-6 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
               <h2 className="text-xl font-bold text-slate-900 mb-4">Chart & Price Action</h2>
               {tickersString ? (
                 <div className="rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-50/50">
@@ -217,6 +218,13 @@ export default async function TeamPage({
                 <p className="text-slate-400 text-xs py-8 text-center">No holdings available yet for charting.</p>
               )}
             </div>
+          </div>
+
+          <div className="lg:col-span-3 rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-4">Portfolio Correlation Matrix</h2>
+            <Suspense fallback={<p role="status" className="text-sm text-slate-500 py-8 text-center">Loading historical returns…</p>}>
+              <TeamCorrelationMatrix teamId={team.id} holdings={holdings.filter((holding: any) => holding.shares > 0)} />
+            </Suspense>
           </div>
 
           {/* Holdings Table */}

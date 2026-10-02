@@ -34,6 +34,10 @@ export default async function updateTeam({
     };
   }
 
+  if (input.name !== undefined && (typeof input.name !== "string" || !input.name.trim())) {
+    return { message: "name is required", error: "Invalid field value" };
+  }
+
   try {
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),

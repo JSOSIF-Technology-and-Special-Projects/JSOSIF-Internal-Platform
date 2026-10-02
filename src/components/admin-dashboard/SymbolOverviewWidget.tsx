@@ -1,5 +1,14 @@
 "use client";
-import { SymbolOverview } from "react-ts-tradingview-widgets";
+import dynamic from "next/dynamic";
+
+// TradingView generates random element IDs, so it must not render during SSR.
+const SymbolOverview = dynamic(
+  () => import("react-ts-tradingview-widgets").then((widgets) => widgets.SymbolOverview),
+  {
+    ssr: false,
+    loading: () => <p role="status" className="text-sm text-slate-500 p-4">Loading price chart…</p>,
+  }
+);
 
 interface BondTicker {
 	s: string; // Symbol

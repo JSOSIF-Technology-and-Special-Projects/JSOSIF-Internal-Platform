@@ -33,15 +33,24 @@ export default async function updateMember({
     };
   }
 
-  if (!input || Object.keys(input).length === 0) {
+  if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).length === 0) {
     return {
       message: "No fields provided for update",
       error: "At least one field must be provided",
     };
   }
 
+  for (const field of ["name", "program"] as const) {
+    if (input[field] !== undefined && (typeof input[field] !== "string" || !input[field]?.trim())) {
+      return { message: `${field} is required`, error: "Invalid field value" };
+    }
+  }
+  if (input.memberSince !== undefined && (!input.memberSince || Number.isNaN(new Date(input.memberSince).getTime()))) {
+    return { message: "A valid member since date is required", error: "Invalid date" };
+  }
+
   // Validate year range if provided
-  if (input.year !== undefined && (input.year < 1 || input.year > 8)) {
+  if (input.year !== undefined && (!Number.isInteger(input.year) || input.year < 1 || input.year > 8)) {
     return {
       message: "Year must be between 1 and 8",
       error: "Invalid year value",
