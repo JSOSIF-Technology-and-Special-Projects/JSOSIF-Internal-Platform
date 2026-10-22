@@ -9,6 +9,7 @@ export interface CorrelationCell {
 }
 
 export const MIN_CORRELATION_OBSERVATIONS = 30;
+export const MAX_ADDED_CORRELATION_STOCKS = 10;
 
 export function extendCorrelationMatrix(matrix: CorrelationCell[][], comparisons: CorrelationCell[], self: CorrelationCell): CorrelationCell[][] {
   return [

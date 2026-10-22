@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { supabaseDb } from "@/utils/supabaseDb";
 import { getPriceHistory } from "@/lib/portfolio/getPriceHistory";
-import { correlate, correlationWindow, dailyReturns, weightedPortfolioReturns } from "@/lib/portfolio/correlation";
+import { correlate, correlationWindow, dailyReturns, MAX_ADDED_CORRELATION_STOCKS, weightedPortfolioReturns } from "@/lib/portfolio/correlation";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const symbol = new URL(request.url).searchParams.get("symbol")?.trim().toUpperCase() || "";
-  if (!/^[0-9a-f-]{36}$/i.test(id) || !/^[A-Z0-9^][A-Z0-9.^=-]{0,19}$/.test(symbol)) {
+  const query = new URL(request.url).searchParams;
+  const symbol = query.get("symbol")?.trim().toUpperCase() || "";
+  const comparisons = query.getAll("compare").map((ticker) => ticker.trim().toUpperCase());
+  if (comparisons.length >= MAX_ADDED_CORRELATION_STOCKS) {
+    return NextResponse.json({ error: `You can add up to ${MAX_ADDED_CORRELATION_STOCKS} stocks.` }, { status: 400 });
+  }
+  const validTicker = (ticker: string) => /^[A-Z0-9^][A-Z0-9.^=-]{0,19}$/.test(ticker);
+  if (!/^[0-9a-f-]{36}$/i.test(id) || !validTicker(symbol) || comparisons.some((ticker) => !validTicker(ticker))) {
     return NextResponse.json({ error: "Enter a valid ticker, such as AAPL or SHOP.TO." }, { status: 400 });
   }
 
@@ -31,20 +37,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const symbols = [...new Set(active.map((holding) => (holding.ticker || "").trim().toUpperCase()))];
-    const histories = await Promise.allSettled(symbols.map((ticker) => ticker === symbol
+    const comparisonSymbols = [...new Set([...symbols, ...comparisons])];
+    const histories = await Promise.allSettled(comparisonSymbols.map((ticker) => ticker === symbol
       ? Promise.resolve(candidate)
       : getPriceHistory(ticker, startDate, endDate).then(dailyReturns)));
     const returns = histories.map((result) => result.status === "fulfilled" ? result.value : new Map<string, number>());
     const weights = symbols.map((ticker) => active.filter((holding) => (holding.ticker || "").trim().toUpperCase() === ticker)
       .reduce((sum, holding) => sum + Number(holding.amount_in_shares) * Number(holding.costCad), 0));
-    const portfolio = correlate(candidate, weightedPortfolioReturns(returns, weights));
+    const portfolio = correlate(candidate, weightedPortfolioReturns(returns.slice(0, symbols.length), weights));
 
     return NextResponse.json({
       symbol, startDate, endDate,
       alreadyHeld: symbols.includes(symbol),
       portfolio,
       self: correlate(candidate, candidate),
-      comparisons: symbols.map((ticker, index) => ({
+      comparisons: comparisonSymbols.map((ticker, index) => ({
         symbol: ticker || "Unknown ticker",
         name: active.find((holding) => (holding.ticker || "").trim().toUpperCase() === ticker)?.name || ticker,
         ...correlate(candidate, returns[index]),

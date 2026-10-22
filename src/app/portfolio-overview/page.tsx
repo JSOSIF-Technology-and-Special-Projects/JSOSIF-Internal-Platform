@@ -7,6 +7,7 @@ import BenchmarkComparison from "@/components/portfolio/BenchmarkComparison";
 import AllocationSection from "@/components/portfolio/AllocationSection";
 import PortfolioChartWidget from "@/components/portfolio/PortfolioChartWidget";
 import FundHoldingsTable from "@/components/portfolio/FundHoldingsTable";
+import FundCorrelationMatrix from "@/components/portfolio/FundCorrelationMatrix";
 import { PortfolioHolding } from "@/data/fallbackHoldings";
 import { BenchmarkResponse, Timeframe } from "@/app/api/benchmarks/route";
 
@@ -230,7 +231,7 @@ export default function PortfolioOverviewPage() {
       ? "6-Month"
       : "Inception";
 
-  const [activeTab, setActiveTab] = useState<"holdings" | "allocation" | "benchmarks" | "chart">("holdings");
+  const [activeTab, setActiveTab] = useState<"holdings" | "allocation" | "benchmarks" | "chart" | "correlation">("holdings");
 
   if (isLoading) {
     return (
@@ -509,11 +510,13 @@ export default function PortfolioOverviewPage() {
                 TradingView
               </span>
             </button>
+            <button onClick={() => setActiveTab("correlation")} className={`flex-1 min-w-[170px] inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all ${activeTab === "correlation" ? "bg-[#0E5791] text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"}`}>Correlation Matrix</button>
           </div>
         </div>
 
         {/* Tab Content Display */}
         <div className="transition-opacity duration-200">
+          {activeTab === "correlation" && <FundCorrelationMatrix />}
           {activeTab === "holdings" && <FundHoldingsTable holdings={holdings} />}
 
           {activeTab === "allocation" && (
