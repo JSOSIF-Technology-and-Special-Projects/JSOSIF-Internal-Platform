@@ -1,6 +1,5 @@
 import React from "react";
 import Link from 'next/link';
-import Announcements from '@/components/announcements/Announcements';
 
 interface NavigationCardProps {
   title: string;
@@ -46,7 +45,7 @@ const NavigationCard: React.FC<NavigationCardProps> = ({ title, description, hre
   </Link>
 );
 
-export default function Homepage({ announcementPage = 1 }: { announcementPage?: number } = {}) {
+export default function Homepage({ children }: { children?: React.ReactNode } = {}) {
   const navigationSections: NavigationCardProps[] = [
     {
       title: "Portfolio Overview",
@@ -213,7 +212,7 @@ export default function Homepage({ announcementPage = 1 }: { announcementPage?: 
           </div>
         </div>
 
-        <Announcements page={announcementPage} />
+        {children}
       </div>
     </div>
   );
