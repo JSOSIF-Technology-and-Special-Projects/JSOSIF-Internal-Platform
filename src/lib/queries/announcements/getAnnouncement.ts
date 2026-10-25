@@ -14,6 +14,7 @@ export async function getAnnouncement(announcementId: string) {
       .from("announcements")
       .select("*")
       .eq("id", announcementId)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (error) throw error;
@@ -27,9 +28,9 @@ export async function getAnnouncement(announcementId: string) {
 
     const mappedAnnouncement = {
       ...announcement,
-      publishedAt: (announcement as any).published_at,
-      createdAt: (announcement as any).created_at,
-      updatedAt: (announcement as any).updated_at,
+      publishedAt: announcement.published_at,
+      createdAt: announcement.created_at,
+      updatedAt: announcement.updated_at,
     };
 
     return {

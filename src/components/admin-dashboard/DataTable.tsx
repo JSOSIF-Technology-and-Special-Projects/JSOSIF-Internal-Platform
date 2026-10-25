@@ -24,6 +24,7 @@ interface DatatableProps {
 	inspectLink?: string;
 	onEdit?: (row: any) => void;
 	onDelete?: (id: string | number, e?: React.MouseEvent<HTMLButtonElement>) => void;
+	renderRowActions?: (row: Record<string, unknown>) => React.ReactNode;
 	enablePagination?: boolean;
 	rowsPerPage?: number;
 	fillEmptyRows?: boolean;
@@ -40,6 +41,7 @@ export default function DataTable({
 	inspectLink,
 	onDelete,
 	onEdit,
+	renderRowActions,
 	enablePagination = false,
 	rowsPerPage = 8,
 	fillEmptyRows = false,
@@ -61,7 +63,7 @@ export default function DataTable({
   }, [rowsPerPage]);
 
   const cellStyles = "!p-4 text-left align-middle";
-  const hasActions = Boolean(onEdit || onDelete);
+  const hasActions = Boolean(onEdit || onDelete || renderRowActions);
 
   const hasData =
     Array.isArray(initialData) &&
@@ -263,6 +265,7 @@ export default function DataTable({
                                 </svg>
                               </button>
                             )}
+                            {renderRowActions?.(row)}
                           </div>
                         </td>
                       )}

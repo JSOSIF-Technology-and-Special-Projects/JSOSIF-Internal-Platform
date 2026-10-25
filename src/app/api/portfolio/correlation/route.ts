@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseDb } from "@/utils/supabaseDb";
 import { getPriceHistory } from "@/lib/portfolio/getPriceHistory";
-import { correlate, correlationMatrix, correlationWindow, dailyReturns, MAX_ADDED_CORRELATION_STOCKS } from "@/lib/portfolio/correlation";
+import { correlate, correlationMatrix, dailyReturns, resolveCorrelationWindow, MAX_ADDED_CORRELATION_STOCKS } from "@/lib/portfolio/correlation";
 
 export async function GET(request: Request) {
   const query = new URL(request.url).searchParams;
+  const window = resolveCorrelationWindow(query, new Date());
+  if ("error" in window) return NextResponse.json({ error: window.error }, { status: 400 });
   const symbol = query.get("symbol")?.trim().toUpperCase();
   const peers = query.getAll("compare").map((ticker) => ticker.trim().toUpperCase());
   const validTicker = (ticker: string) => /^[A-Z0-9^][A-Z0-9.^=-]{0,19}$/.test(ticker);
@@ -25,7 +27,7 @@ export async function GET(request: Request) {
       return ticker && !isFixedIncome && !["CASH", "CAD.CASH"].includes(ticker) && !name.includes("cash reserve") && !name.includes("cash & equivalents");
     })
       .map((holding) => [holding.ticker.trim().toUpperCase(), { symbol: holding.ticker.trim().toUpperCase(), name: holding.name }])).values()];
-    const { startDate, endDate } = correlationWindow();
+    const { startDate, endDate } = window;
     const symbols = [...new Set([...holdings.map((holding) => holding.symbol), ...peers, ...(symbol ? [symbol] : [])])];
     const histories = await Promise.allSettled(symbols.map((ticker) => getPriceHistory(ticker, startDate, endDate)));
     const series = histories.map((history) => history.status === "fulfilled" ? history.value : []);

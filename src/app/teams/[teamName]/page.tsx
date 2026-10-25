@@ -147,6 +147,8 @@ export default async function TeamPage({
               </p>
             </div>
 
+            <div className="flex flex-wrap gap-2">
+            <Link href={`/watchlist?team=${encodeURIComponent(team.id)}`} className="inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20">Team watchlist</Link>
             <Link
               href={`/simulator?team=${encodeURIComponent(teamNameLabel)}`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-md shadow-blue-500/20 transition-all self-start sm:self-auto active:scale-95 shrink-0"
@@ -156,6 +158,7 @@ export default async function TeamPage({
               </svg>
               <span>Simulate Trade for {teamNameLabel}</span>
             </Link>
+            </div>
           </div>
         </div>
 
@@ -223,7 +226,7 @@ export default async function TeamPage({
           <div className="lg:col-span-3 rounded-3xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-4">Portfolio Correlation Matrix</h2>
             <Suspense fallback={<p role="status" className="text-sm text-slate-500 py-8 text-center">Loading historical returns…</p>}>
-              <TeamCorrelationMatrix teamId={team.id} holdings={holdings.filter((holding: any) => holding.shares > 0)} />
+              <TeamCorrelationMatrix teamId={team.id} />
             </Suspense>
           </div>
 

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { safeReturnPath } from '@/lib/auth/returnPath';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
 import jsosifbanner from '../assets/jsosifbanner.png';
@@ -50,11 +51,9 @@ export default function LoginPage() {
         })
       );
 
-      if (role === 'Admin') {
-        router.push('/admin-dashboard');
-      } else {
-        router.push('/homepage');
-      }
+      const next = new URLSearchParams(window.location.search).get('next');
+      router.push(safeReturnPath(next, role === 'Admin' ? '/admin-dashboard' : '/homepage'));
+      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

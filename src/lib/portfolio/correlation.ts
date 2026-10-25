@@ -10,6 +10,18 @@ export interface CorrelationCell {
 
 export const MIN_CORRELATION_OBSERVATIONS = 30;
 export const MAX_ADDED_CORRELATION_STOCKS = 10;
+export const CORRELATION_PERIODS = [
+  { value: "3m", label: "3 months", months: 3 },
+  { value: "6m", label: "6 months", months: 6 },
+  { value: "1y", label: "1 year", months: 12 },
+  { value: "3y", label: "3 years", months: 36 },
+] as const;
+export type CorrelationPreset = typeof CORRELATION_PERIODS[number]["value"];
+export type CorrelationPeriod = CorrelationPreset | "custom";
+
+export function isCorrelationPeriod(value: string): value is CorrelationPeriod {
+  return value === "custom" || CORRELATION_PERIODS.some((period) => period.value === value);
+}
 
 export function extendCorrelationMatrix(matrix: CorrelationCell[][], comparisons: CorrelationCell[], self: CorrelationCell): CorrelationCell[][] {
   return [
@@ -18,12 +30,47 @@ export function extendCorrelationMatrix(matrix: CorrelationCell[][], comparisons
   ];
 }
 
-export function correlationWindow(now = new Date()) {
+export function correlationWindow(now = new Date(), period: CorrelationPreset = "1y") {
   const end = new Date(now);
   end.setUTCHours(0, 0, 0, 0);
   const start = new Date(end);
-  start.setUTCFullYear(start.getUTCFullYear() - 1);
+  const months = CORRELATION_PERIODS.find((option) => option.value === period)!.months;
+  start.setUTCMonth(start.getUTCMonth() - months, 1);
+  const lastDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+  start.setUTCDate(Math.min(end.getUTCDate(), lastDay));
   return { startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10) };
+}
+
+// Price history uses an exclusive end; date pickers and labels use inclusive dates.
+export function correlationInclusiveEndDate(endDate: string) {
+  const end = new Date(`${endDate}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() - 1);
+  return end.toISOString().slice(0, 10);
+}
+
+export function resolveCorrelationWindow(query: URLSearchParams, now = new Date()): { startDate: string; endDate: string } | { error: string } {
+  const period = query.get("period") ?? "1y";
+  if (!isCorrelationPeriod(period)) return { error: "Choose a valid period: 3m, 6m, 1y, 3y, or custom." };
+  if (period !== "custom") {
+    if (query.has("startDate") || query.has("endDate")) return { error: "Choose Custom dates to use a start and end date." };
+    return correlationWindow(now, period);
+  }
+
+  const startDate = query.get("startDate") ?? "";
+  const inclusiveEnd = query.get("endDate") ?? "";
+  const validDate = (value: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(`${value}T00:00:00Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  };
+  if (!validDate(startDate) || !validDate(inclusiveEnd)) return { error: "Choose valid start and end dates." };
+  if (startDate >= inclusiveEnd) return { error: "The start date must be before the end date." };
+  const latestEnd = correlationInclusiveEndDate(correlationWindow(now).endDate);
+  if (inclusiveEnd > latestEnd) return { error: `Choose an end date on or before ${latestEnd} so only completed days are included.` };
+
+  const end = new Date(`${inclusiveEnd}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { startDate, endDate: end.toISOString().slice(0, 10) };
 }
 
 // Constant weights, using only periods available for every constituent.

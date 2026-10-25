@@ -41,6 +41,7 @@ export async function getMember(memberId: string) {
           company_name
         )
       `)
+      .is("graduated_at", null)
       .eq("id", memberId)
       .maybeSingle();
 

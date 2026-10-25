@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { isProposalId, type AllocationSnapshot, type TradeLeg } from "@/lib/trades/proposals";
 import { PortfolioHolding } from "@/data/fallbackHoldings";
 import SimulatorAllocationPreview, {
   AllocationItemComparison,
@@ -10,6 +13,8 @@ interface TradeSimulatorProps {
   holdings: PortfolioHolding[];
   totalMarketValue: number;
   initialTeam?: string;
+  initialTicker?: string;
+  initialSector?: string;
 }
 
 interface SellLeg {
@@ -51,9 +56,18 @@ const STANDARD_SECTORS = [
 
 export default function TradeSimulator({
   holdings,
-  totalMarketValue,
   initialTeam,
+  initialTicker,
+  initialSector,
 }: TradeSimulatorProps) {
+  const router = useRouter();
+  const [creatingProposal, setCreatingProposal] = useState(false);
+  const [proposalError, setProposalError] = useState("");
+  const [proposalSignInRequired, setProposalSignInRequired] = useState(false);
+  const proposalPending = useRef(false);
+  const prefilledTicker = useRef("");
+  const proposalRequest = useRef<{ fingerprint: string; id: string; generatedAt: string } | null>(null);
+
   // 1. Team perspective filter
   const [selectedTeam, setSelectedTeam] = useState<string>(initialTeam || "all");
 
@@ -152,14 +166,6 @@ export default function TradeSimulator({
           )
       )
     ).sort();
-  }, [nonCashHoldings]);
-
-  // Available Sectors (Institutional Standards + existing portfolio sectors)
-  const sectors = useMemo(() => {
-    const existing = nonCashHoldings
-      .map((h) => h.sector || h.industry)
-      .filter((s) => Boolean(s) && s !== "Cash & Liquidity" && s !== "Cash & Equivalents");
-    return Array.from(new Set([...STANDARD_SECTORS, ...existing])).sort();
   }, [nonCashHoldings]);
 
   // Set default target team when selectedTeam changes
@@ -276,7 +282,7 @@ export default function TradeSimulator({
   };
 
   // Look up quote for ANY new ticker via /api/quote
-  const handleLookupNewTicker = async (symbolToFetch?: string) => {
+  const handleLookupNewTicker = useCallback(async (symbolToFetch?: string, sectorHint?: string) => {
     const sym = (symbolToFetch || newTickerInput).trim().toUpperCase();
     if (!sym) return;
 
@@ -298,7 +304,7 @@ export default function TradeSimulator({
       const incomingSector =
         data.sector && data.sector !== "USD" && data.sector !== "CAD"
           ? data.sector
-          : "";
+          : sectorHint || "";
       setTargetSector(incomingSector);
       if (incomingSector) {
         autoSyncTeamFromSector(incomingSector);
@@ -306,12 +312,20 @@ export default function TradeSimulator({
       if (selectedTeam !== "all") {
         setTargetTeam(selectedTeam);
       }
-    } catch (err: any) {
-      setQuoteError(err?.message || "Could not retrieve live price for symbol.");
+    } catch (err: unknown) {
+      setQuoteError(err instanceof Error ? err.message : "Could not retrieve live price for symbol.");
     } finally {
       setIsFetchingQuote(false);
     }
-  };
+  }, [newTickerInput, autoSyncTeamFromSector, selectedTeam]);
+
+  useEffect(() => {
+    if (!initialTicker || prefilledTicker.current === initialTicker) return;
+    prefilledTicker.current = initialTicker;
+    setBuySourceMode("new");
+    setNewTickerInput(initialTicker);
+    void handleLookupNewTicker(initialTicker, initialSector);
+  }, [initialTicker, initialSector, handleLookupNewTicker]);
 
   // Handle share vs dollar input sync
   const handleSharesChange = (shares: number) => {
@@ -666,44 +680,15 @@ export default function TradeSimulator({
         }
       }
 
-      const assetComparisonsList: AllocationItemComparison[] = [
-        {
-          name: "Equities",
-          beforeValue: assetMapBefore.Equities,
-          beforePercent: (assetMapBefore.Equities / baseTotalValue) * 100,
-          afterValue: assetMapAfter.Equities,
-          afterPercent: (assetMapAfter.Equities / simulatedTotalValue) * 100,
-          deltaPercent:
-            (assetMapAfter.Equities / simulatedTotalValue) * 100 -
-            (assetMapBefore.Equities / baseTotalValue) * 100,
-          deltaValue: assetMapAfter.Equities - assetMapBefore.Equities,
-          color: "#0E5791",
-        },
-        {
-          name: "Fixed Income",
-          beforeValue: assetMapBefore["Fixed Income"],
-          beforePercent: (assetMapBefore["Fixed Income"] / baseTotalValue) * 100,
-          afterValue: assetMapAfter["Fixed Income"],
-          afterPercent: (assetMapAfter["Fixed Income"] / simulatedTotalValue) * 100,
-          deltaPercent:
-            (assetMapAfter["Fixed Income"] / simulatedTotalValue) * 100 -
-            (assetMapBefore["Fixed Income"] / baseTotalValue) * 100,
-          deltaValue: assetMapAfter["Fixed Income"] - assetMapBefore["Fixed Income"],
-          color: "#00C49F",
-        },
-        {
-          name: "Cash Reserve",
-          beforeValue: assetMapBefore["Cash Reserve"],
-          beforePercent: (assetMapBefore["Cash Reserve"] / baseTotalValue) * 100,
-          afterValue: assetMapAfter["Cash Reserve"],
-          afterPercent: (assetMapAfter["Cash Reserve"] / simulatedTotalValue) * 100,
-          deltaPercent:
-            (assetMapAfter["Cash Reserve"] / simulatedTotalValue) * 100 -
-            (assetMapBefore["Cash Reserve"] / baseTotalValue) * 100,
-          deltaValue: assetMapAfter["Cash Reserve"] - assetMapBefore["Cash Reserve"],
-          color: "#64748B",
-        },
-      ];
+      const assetNames: Array<keyof typeof assetMapBefore> = ["Equities", "Fixed Income", "Cash Reserve"];
+      const assetColors = { Equities: "#0E5791", "Fixed Income": "#00C49F", "Cash Reserve": "#64748B" };
+      const assetComparisonsList: AllocationItemComparison[] = assetNames.map(name => {
+        const beforeValue = assetMapBefore[name];
+        const afterValue = assetMapAfter[name];
+        const beforePercent = baseTotalValue > 0 ? beforeValue / baseTotalValue * 100 : 0;
+        const afterPercent = simulatedTotalValue > 0 ? afterValue / simulatedTotalValue * 100 : 0;
+        return { name, beforeValue, afterValue, beforePercent, afterPercent, deltaPercent: afterPercent - beforePercent, deltaValue: afterValue - beforeValue, color: assetColors[name] };
+      });
 
       return {
         teamComparisons: teamComparisonsList,
@@ -736,6 +721,41 @@ export default function TradeSimulator({
         return b.marketValue - a.marketValue;
       });
   }, [nonCashHoldings, sellLegs, selectedTeam]);
+
+  async function handleCreateProposal() {
+    if (proposalPending.current) return;
+    setProposalError("");
+    setProposalSignInRequired(false);
+    if (targetShares > 0 && (!targetTicker || !Number.isFinite(targetPriceCad) || targetPriceCad <= 0)) {
+      setProposalError("Choose a valid purchase and wait for its price before continuing.");
+      return;
+    }
+    const legs: TradeLeg[] = [];
+    if (targetShares > 0) legs.push({ side: "buy", symbol: targetTicker, name: targetName || targetTicker, shares: targetShares, priceCad: targetPriceCad, team: targetTeam, sector: targetSector });
+    for (const leg of sellLegs.filter(leg => leg.sharesToSell > 0)) {
+      legs.push({ side: "sell", symbol: leg.ticker, name: leg.name || leg.ticker, shares: leg.sharesToSell, priceCad: leg.currentPrice, team: leg.team, sector: leg.sector });
+    }
+    if (legs.length === 0) { setProposalError("Add a buy or sell with a positive quantity first."); return; }
+    const allocation = (rows: AllocationItemComparison[]): AllocationSnapshot[] => rows.map(({ name, beforePercent, afterPercent }) => ({ name, beforePercent, afterPercent }));
+    const simulation = { cashBefore: cashBalance, fundCapital, teams: allocation(teamComparisons), sectors: allocation(sectorComparisons), assets: allocation(assetComparisons), ...(targetTicker && targetShares > 0 ? { stockExposure: { symbol: targetTicker, afterPercent: postTradeStockWeightPct } } : {}) };
+    const fingerprint = JSON.stringify({ legs, simulation });
+    if (proposalRequest.current?.fingerprint !== fingerprint) proposalRequest.current = { fingerprint, id: crypto.randomUUID(), generatedAt: new Date().toISOString() };
+    const request = proposalRequest.current;
+    proposalPending.current = true;
+    setCreatingProposal(true);
+    try {
+      const response = await fetch("/api/trade-proposals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: request.id, legs, simulation: { ...simulation, generatedAt: request.generatedAt } }) });
+      const result = await response.json();
+      if (!response.ok) {
+        setProposalSignInRequired(response.status === 401);
+        throw new Error(result.error || "Unable to create this proposal.");
+      }
+      if (!isProposalId(result.data?.id)) throw new Error("Unable to open this proposal. Please try again.");
+      router.push(`/trade-submissions?proposal=${encodeURIComponent(result.data.id)}#proposal-builder`);
+    } catch (error) {
+      setProposalError(error instanceof Error ? error.message : "Unable to create this proposal. Please try again.");
+    } finally { proposalPending.current = false; setCreatingProposal(false); }
+  }
 
   // Copy Investment Committee Trade Proposal summary
   const handleCopyProposal = () => {
@@ -1770,11 +1790,14 @@ export default function TradeSimulator({
                 Investment Committee (IC) Memo
               </h4>
               <p className="text-xs text-slate-500 mt-0.5">
-                Export consolidated trade summary memo for team presentations
+                Copy the memo or continue to a proposal, then add your reasoning for CEO review.
               </p>
             </div>
 
-            <button
+            <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+            <button type="button" disabled={creatingProposal || isFetchingQuote || (targetShares <= 0 && !sellLegs.some(leg => leg.sharesToSell > 0))} onClick={() => void handleCreateProposal()} className="rounded-xl bg-[#0E5791] px-4 py-2 text-xs font-bold text-white hover:bg-[#0a4370] disabled:opacity-50">{creatingProposal ? "Saving draft…" : "Submit proposal"}</button>
+            <button type="button"
               onClick={handleCopyProposal}
               className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${
                 copiedProposal
@@ -1803,6 +1826,10 @@ export default function TradeSimulator({
                 </>
               )}
             </button>
+            </div>
+            {proposalError && <p role="alert" className="max-w-sm text-sm text-red-600">{proposalError}</p>}
+            {proposalSignInRequired && <Link href="/login" className="text-sm font-semibold text-[#0E5791] underline">Sign in to submit a proposal</Link>}
+            </div>
           </div>
         </div>
       </div>

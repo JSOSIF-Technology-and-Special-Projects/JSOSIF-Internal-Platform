@@ -3,13 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { supabaseDb } from "@/utils/supabaseDb";
 
-/**
- * Gets the current authenticated user's member record and their role
- * This function mimics how we should get the member's role for permission checks
- *
- * TODO: Once you implement the link between auth.users and Member, update this function
- * to properly find the member record (e.g., by email, user_id, etc.)
- */
+// Match the dashboard's policy: Admin in either the profile or linked member role.
 export async function getCurrentMemberRole() {
   try {
     const cookieStore = await cookies();
@@ -29,34 +23,47 @@ export async function getCurrentMemberRole() {
       };
     }
 
-    const { data: profile } = await supabaseDb
+    const { data: profile, error: profileError } = await supabaseDb
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.role) {
+    const profileRole = typeof profile?.role === "string" ? {
+      id: profile.id,
+      name: profile.role,
+      description: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } : null;
+
+    if (!profileError && profileRole?.name.toLowerCase() === "admin") {
       return {
         member: null,
-        role: {
-          id: profile.id,
-          name: profile.role,
-          description: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+        role: profileRole,
         error: null,
       };
     }
 
-    // Fallback to member->role for legacy users.
-    const { data: member } = await supabaseDb
+    // A generic profile role must not hide an explicitly assigned member Admin role.
+    const { data: member, error: memberError } = await supabaseDb
       .from("members")
       .select("*, role:roles(*)")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!member || !member.role) {
+    const memberRole = Array.isArray(member?.role) ? member.role[0] : member?.role;
+    if (!memberError && typeof memberRole?.name === "string" && memberRole.name.toLowerCase() === "admin") {
+      return { member, role: memberRole, error: null };
+    }
+
+    if (profileError || memberError) {
+      console.error("Role lookup failed:", profileError || memberError);
+      return { member: null, role: null, error: "Unable to verify your role. Please try again." };
+    }
+
+    const role = profileRole || memberRole;
+    if (!role) {
       return {
         member: null,
         role: null,
@@ -66,7 +73,7 @@ export async function getCurrentMemberRole() {
 
     return {
       member,
-      role: member.role,
+      role,
       error: null,
     };
   } catch (error) {
@@ -90,17 +97,24 @@ export async function isAdmin(): Promise<boolean> {
     return false;
   }
 
-  return role.name === "Admin";
+  return typeof role.name === "string" && role.name.toLowerCase() === "admin";
 }
 
 /**
  * Requires admin permissions for a mutation
- * Throws an error if the user is not an admin
+ * Returns an authorization error if the user is not an admin.
  */
 export async function requireAdmin() {
-  const admin = await isAdmin();
+  const { role, error } = await getCurrentMemberRole();
 
-  if (!admin) {
+  if (error === "Not authenticated") {
+    return { message: "Unauthorized", error: "Please sign in again." };
+  }
+  if (error && error !== "No role found for this user") {
+    return { message: "Unable to verify permissions", error: "Unable to verify your role. Please try again." };
+  }
+
+  if (error || typeof role?.name !== "string" || role.name.toLowerCase() !== "admin") {
     return {
       message: "Unauthorized",
       error: "This operation requires Admin role",

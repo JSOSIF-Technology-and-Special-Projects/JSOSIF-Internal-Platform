@@ -1,18 +1,13 @@
 "use server";
 import { supabaseDb, formatDbError } from "@/utils/supabaseDb";
-import { requireAdmin } from "@/utils/permissions";
+import { getAnnouncementUser } from "@/lib/queries/announcements/getAnnouncementUser";
+import { revalidatePath } from "next/cache";
 
 export default async function deleteAnnouncement({
   announcementId,
 }: {
   announcementId: string;
 }) {
-  // Check admin permissions
-  const authError = await requireAdmin();
-  if (authError) {
-    return authError;
-  }
-
   if (!announcementId || !/^[0-9a-fA-F-]{36}$/.test(announcementId)) {
     return {
       message: "Valid announcementId (UUID) is required",
@@ -21,14 +16,23 @@ export default async function deleteAnnouncement({
   }
 
   try {
+    const user = await getAnnouncementUser();
+    if (!user) return { message: "Unauthorized", error: "Please sign in again." };
+
+    const now = new Date().toISOString();
     const { data: announcement, error } = await supabaseDb
       .from("announcements")
-      .delete()
+      .update({ deleted_at: now, updated_at: now })
       .eq("id", announcementId)
+      .eq("author_id", user.id)
+      .is("deleted_at", null)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!announcement) return { message: "Not found", error: "Announcement not found or you are not its author." };
+
+    revalidatePath("/homepage");
 
     return {
       message: "Announcement deleted successfully",

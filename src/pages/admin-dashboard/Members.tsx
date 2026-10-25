@@ -5,6 +5,7 @@ import DataTable, { Header } from "@/components/admin-dashboard/DataTable";
 import CreateModel, {
   CreateField,
 } from "@/components/admin-dashboard/CreateModel";
+import MoveMemberToAlumniDialog, { type GraduatingMember } from "@/components/admin-dashboard/MoveMemberToAlumniDialog";
 
 interface CreateMemberInput {
   name: string;
@@ -85,6 +86,7 @@ export default function Members() {
   const [data, setData] = useState<unknown[] | ["empty"]>(["empty"]);
   const [roles, setRoles] = useState<SelectOption[]>([]);
   const [teams, setTeams] = useState<SelectOption[]>([]);
+  const [movingMember, setMovingMember] = useState<GraduatingMember | null>(null);
 
   useEffect(() => {
     getMembers()
@@ -199,6 +201,17 @@ export default function Members() {
 
   return (
     <>
+      {movingMember && <MoveMemberToAlumniDialog member={movingMember} onClose={() => setMovingMember(null)} onMoved={async (member) => {
+        setMovingMember(null);
+        setSuccess(`${member.name} moved to alumni successfully.`);
+        setError("");
+        setData((previous) => previous.filter((row) => typeof row === "object" && row !== null && "id" in row && row.id !== member.id));
+        try {
+          await refreshData();
+        } catch {
+          setError("The member was moved, but the list could not refresh. Reload the page to see the latest members.");
+        }
+      }} />}
       {createModelOpen && <CreateModel
         mode={editingMember ? "edit" : "create"}
         modelName="Member"
@@ -238,6 +251,10 @@ export default function Members() {
           onCreateClick={() => { setEditingMember(null); setCreateModelOpen(true); }}
           onEdit={(row) => { setEditingMember(row); setCreateModelOpen(true); }}
           onDelete={deleteRow}
+          renderRowActions={(row) => <button type="button" disabled={deleting} onClick={(event) => {
+            event.stopPropagation();
+            setMovingMember({ id: String(row.id), name: String(row.name), program: String(row.program || ""), memberSince: String(row.memberSince || "") });
+          }} className="h-8 shrink-0 whitespace-nowrap rounded-md border border-blue-200 px-3 text-sm font-semibold text-[#0E5791] hover:bg-blue-50 disabled:opacity-50">Move to alumni</button>}
           headers={headers}
           modelName="Member"
           idKey="id"

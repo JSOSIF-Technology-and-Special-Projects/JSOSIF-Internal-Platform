@@ -40,6 +40,7 @@ export async function getTeam(teamId: string) {
           costCad
         )
       `)
+      .is("members.graduated_at", null)
       .eq("id", teamId)
       .maybeSingle();
 

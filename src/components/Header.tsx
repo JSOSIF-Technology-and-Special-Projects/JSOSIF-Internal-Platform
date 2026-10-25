@@ -115,7 +115,7 @@ export default function Header() {
       {
         name: "Teams",
         href: "/teams",
-        childPaths: dynamicTeamPaths,
+        childPaths: [{ name: "Team Watchlists", href: "/watchlist" }, ...dynamicTeamPaths],
       },
       { name: "Portfolio Overview", href: "/portfolio-overview" },
       { name: "Trade Simulator", href: "/simulator" },
@@ -274,6 +274,12 @@ export default function Header() {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Live Market Active
           </span>
+
+          {isLoggedIn && (
+            <Link href={`/feedback?from=${encodeURIComponent(pathname || "/homepage")}`} aria-label="Send feedback" title="Send feedback" className="inline-flex items-center rounded-xl border border-slate-200/70 p-2 text-slate-600 hover:bg-blue-50 hover:text-[#0E5791]">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h8M8 14h5M6 20l-3 1V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9l-3 1Z" /></svg>
+            </Link>
+          )}
 
           {isLoggedIn && (
             <button

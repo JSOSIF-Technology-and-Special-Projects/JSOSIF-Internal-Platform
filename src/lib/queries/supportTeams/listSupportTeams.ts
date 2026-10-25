@@ -26,6 +26,7 @@ export async function listSupportTeams() {
         )
       `)
       .eq("team_type", "Support")
+      .is("members.graduated_at", null)
       .order("name", { ascending: true });
 
     if (error) throw error;
