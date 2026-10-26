@@ -5,10 +5,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import TradeSimulator from "@/components/portfolio/TradeSimulator";
 import { PortfolioHolding } from "@/data/fallbackHoldings";
+import { watchlistSymbol } from "@/lib/watchlist/types";
 
 function SimulatorContent() {
   const searchParams = useSearchParams();
   const initialTeam = searchParams?.get("team") || undefined;
+  const initialTicker = watchlistSymbol(searchParams?.get("ticker")) || undefined;
+  const initialSector = searchParams?.get("sector")?.slice(0, 120) || undefined;
 
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,6 +140,8 @@ function SimulatorContent() {
           holdings={holdings}
           totalMarketValue={totalMarketValue}
           initialTeam={initialTeam}
+          initialTicker={initialTicker}
+          initialSector={initialSector}
         />
       </div>
     </main>

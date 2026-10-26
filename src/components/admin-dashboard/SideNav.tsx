@@ -137,6 +137,11 @@ export default function SideNav() {
 				</svg>
 			),
 		},
+		{
+			name: "Feedback",
+			href: "/admin-dashboard/feedback",
+			icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h5M6 20l-3 1V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H9l-3 1Z" /></svg>,
+		},
 	];
 
 	return (

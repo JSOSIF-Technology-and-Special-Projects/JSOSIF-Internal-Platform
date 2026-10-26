@@ -21,6 +21,7 @@ export default async function deleteMember({ memberId }: { memberId: string }) {
       .from("members")
       .delete()
       .eq("id", memberId)
+      .is("graduated_at", null)
       .select()
       .single();
 

@@ -441,6 +441,7 @@ model Member {
   program     String   @db.VarChar(255)
   year        Int
   memberSince DateTime @map("member_since") @db.Date
+  graduatedAt DateTime? @map("graduated_at") @db.Timestamptz(6)
   linkedin    String?  @unique @db.VarChar(255)
   userId      String?  @unique @map("user_id") @db.Uuid
   roleId      String?  @map("role_id") @db.Uuid
@@ -468,10 +469,54 @@ model Team {
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   holdings    Holding[]
   members     Member[]
+  watchlistEntries WatchlistEntry[]
 
   @@index([name])
   @@index([teamType])
   @@map("teams")
+  @@schema("public")
+}
+
+model FeedbackSubmission {
+  id             String @id @default(uuid()) @db.Uuid
+  authorId       String @map("author_id") @db.Uuid
+  authorName     String @map("author_name") @db.VarChar(255)
+  kind           String @db.VarChar(20)
+  message        String
+  pagePath       String? @map("page_path") @db.VarChar(500)
+  status         String @default("new") @db.VarChar(20)
+  reviewedBy     String? @map("reviewed_by") @db.Uuid
+  reviewedByName String? @map("reviewed_by_name") @db.VarChar(255)
+  reviewedAt     DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([authorId, createdAt])
+  @@index([status, createdAt])
+  @@map("feedback_submissions")
+  @@schema("public")
+}
+
+model WatchlistEntry {
+  id              String @id @default(uuid()) @db.Uuid
+  teamId          String @map("team_id") @db.Uuid
+  symbol          String @db.VarChar(40)
+  companyName     String @map("company_name") @db.VarChar(255)
+  sector          String @default("") @db.VarChar(120)
+  notes           String
+  targetPriceCad  Decimal? @map("target_price_cad") @db.Decimal(20, 6)
+  status          String @default("watching") @db.VarChar(20)
+  authorId        String @map("author_id") @db.Uuid
+  authorName      String @map("author_name") @db.VarChar(255)
+  updatedBy       String @map("updated_by") @db.Uuid
+  updatedByName   String @map("updated_by_name") @db.VarChar(255)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  team            Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
+
+  @@unique([teamId, symbol])
+  @@index([teamId, status, updatedAt])
+  @@map("watchlist_entries")
   @@schema("public")
 }
 
@@ -517,10 +562,40 @@ model Alumni {
   @@schema("public")
 }
 
+model TradeProposal {
+  id           String    @id @default(uuid()) @db.Uuid
+  authorId     String    @map("author_id") @db.Uuid
+  authorName   String    @map("author_name") @db.VarChar(255)
+  status       String    @default("draft") @db.VarChar(20)
+  legs         Json
+  simulation   Json
+  reason       String    @default("")
+  reviewNote   String    @default("") @map("review_note")
+  reviewerId   String?   @map("reviewer_id") @db.Uuid
+  reviewerName String?   @map("reviewer_name") @db.VarChar(255)
+  submittedAt  DateTime? @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt   DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  notificationStatus String @default("not_sent") @map("notification_status") @db.VarChar(20)
+  notificationAttemptedAt DateTime? @map("notification_attempted_at") @db.Timestamptz(6)
+  notifiedAt   DateTime? @map("notified_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([authorId, createdAt])
+  @@index([status, createdAt])
+  @@map("trade_proposals")
+  @@schema("public")
+}
+
 model Announcement {
   id          String   @id @default(uuid()) @db.Uuid
   title       String   @db.VarChar(255)
   information String
+  authorId    String?  @map("author_id") @db.Uuid
+  authorName  String?  @map("author_name") @db.VarChar(255)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  editedAt    DateTime? @map("edited_at") @db.Timestamptz(6)
+  isPinned    Boolean  @default(false) @map("is_pinned")
   publishedAt DateTime @map("published_at") @db.Timestamptz(6)
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)

@@ -16,6 +16,7 @@ export async function listRoles() {
           name
         )
       `)
+      .is("members.graduated_at", null)
       .order("name", { ascending: true });
 
     if (error) throw error;

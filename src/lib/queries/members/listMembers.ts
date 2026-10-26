@@ -29,6 +29,7 @@ export async function listMembers() {
           description
         )
       `)
+      .is("graduated_at", null)
       .order("name", { ascending: true });
 
     if (error) throw error;

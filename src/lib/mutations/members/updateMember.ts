@@ -77,6 +77,7 @@ export default async function updateMember({
       .from("members")
       .update(updateData)
       .eq("id", memberId)
+      .is("graduated_at", null)
       .select("*, role:roles(*), team:teams(*)")
       .single();
 

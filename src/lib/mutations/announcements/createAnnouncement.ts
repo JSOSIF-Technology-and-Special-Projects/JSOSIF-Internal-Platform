@@ -1,10 +1,13 @@
 "use server";
 import { supabaseDb, formatDbError, generateId } from "@/utils/supabaseDb";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/utils/permissions";
+import { getAnnouncementAuthor } from "@/lib/queries/announcements/getAnnouncementAuthor";
 
 export interface CreateAnnouncementInput {
   title: string;
   information: string;
+  isPinned?: boolean;
   publishedAt?: string | Date;
 }
 
@@ -18,14 +21,19 @@ export default async function createAnnouncement(
   }
 
   // Validation
-  if (!input.title || !input.information) {
+  if (typeof input?.title !== "string" || typeof input?.information !== "string" || !input.title.trim() || !input.information.trim() || input.title.trim().length > 255 || input.information.trim().length > 10000) {
     return {
-      message: "Missing required field(s) (title, information)",
+      message: "Enter a title (up to 255 characters) and message (up to 10,000 characters)",
       error: "Missing required fields",
     };
   }
 
+  if (input.isPinned !== undefined && typeof input.isPinned !== "boolean") {
+    return { message: "Invalid pin setting", error: "Pinned must be true or false." };
+  }
+
   try {
+    const author = await getAnnouncementAuthor();
     const id = generateId();
     const now = new Date().toISOString();
     const publishedAtStr = input.publishedAt
@@ -36,8 +44,11 @@ export default async function createAnnouncement(
       .from("announcements")
       .insert({
         id,
-        title: input.title,
-        information: input.information,
+        title: input.title.trim(),
+        information: input.information.trim(),
+        author_id: author.id,
+        author_name: author.name,
+        is_pinned: input.isPinned ?? false,
         published_at: publishedAtStr,
         created_at: now,
         updated_at: now,
@@ -46,6 +57,8 @@ export default async function createAnnouncement(
       .single();
 
     if (error) throw error;
+
+    revalidatePath("/homepage");
 
     const mapped = {
       ...announcement,

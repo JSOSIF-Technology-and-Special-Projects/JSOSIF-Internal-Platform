@@ -25,6 +25,7 @@ export async function getRole(roleId: string) {
           year
         )
       `)
+      .is("members.graduated_at", null)
       .eq("id", roleId)
       .maybeSingle();
 
